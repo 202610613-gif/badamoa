@@ -1399,6 +1399,15 @@
     const avatarOptions = document.querySelector('#avatarOptions');
     const avatarError = document.querySelector('#avatarError');
     const avatarChoices = ['☺','🏖️','🌊','🐬','🐳','🐚','🪼','🐢','⭐','😎'];
+    const profileStartParams = new URLSearchParams(location.search);
+    if (profileStartParams.get('profile') === 'setup') {
+      localStorage.removeItem('badamoa-profile-name');
+      localStorage.removeItem('badamoa-profile-avatar');
+      localStorage.removeItem('badamoa-used-names');
+      profileStartParams.delete('profile');
+      const cleanQuery = profileStartParams.toString();
+      history.replaceState(null, '', `${location.pathname}${cleanQuery ? `?${cleanQuery}` : ''}${location.hash}`);
+    }
     let currentProfileName = localStorage.getItem('badamoa-profile-name') || '';
     let currentAvatar = localStorage.getItem('badamoa-profile-avatar') || '☺';
     const getUsedNames = () => {
