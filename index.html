@@ -414,6 +414,7 @@
     .map-fallback button { width: 100%; padding: 12px; border: 0; border-radius: 11px; color: #397fae; background: #edf7fd; text-align: left; font: inherit; font-size: 13px; cursor: pointer; }
     .leaflet-container { font-family: "Jua", sans-serif; }
     .leaflet-tooltip { border: 0; border-radius: 9px; color: #397fae; box-shadow: 0 4px 14px rgba(49,80,108,.15); font-size: 10px; font-weight: 900; }
+    .leaflet-tooltip.beach-name-label { padding: 5px 8px; background: rgba(255,255,255,.94); white-space: nowrap; }
     .home-return {
       display: flex; align-items: center; justify-content: center; gap: 7px;
       width: 100%; min-height: 54px; margin-top: 20px;
@@ -488,6 +489,12 @@
       transition: opacity .55s ease .18s, transform .55s ease .18s;
     }
     .launch-screen.show-notice .launch-content { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .launch-close {
+      position: fixed; top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right));
+      display: grid; place-items: center; width: 44px; height: 44px;
+      border: 0; border-radius: 50%; color: #527992; background: #edf7fc;
+      font-size: 27px; cursor: pointer;
+    }
     .launch-logo {
       display: grid; place-items: center;
       width: 112px; height: 112px; margin: 0 auto;
@@ -501,13 +508,13 @@
     .launch-description { margin: 26px 0 8px; color: #516f84; font-size: 20px; line-height: 1.6; }
     .launch-description strong { color: #178fc7; }
     .launch-subtext { margin: 0 auto 30px; max-width: 330px; color: #7892a9; font-size: 14px; line-height: 1.7; }
-    .launch-start {
-      width: 100%; min-height: 56px; border: 0; border-radius: 17px;
-      color: #fff; background: linear-gradient(135deg, #178fc7, #53b9d4);
-      box-shadow: 0 13px 30px rgba(8, 120, 181, .22);
-      font-size: 17px; cursor: pointer;
+    .launch-skip-day {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: 56px; padding: 0 18px; border: 2px solid #b9def0; border-radius: 17px;
+      color: #315f7e; background: #f5fbfe; font-size: 16px; cursor: pointer;
     }
-    .launch-start:focus-visible { outline: 4px solid rgba(23,143,199,.25); outline-offset: 4px; }
+    .launch-skip-day input { width: 21px; height: 21px; accent-color: #178fc7; }
+    .launch-close:focus-visible, .launch-skip-day:focus-within { outline: 4px solid rgba(23,143,199,.25); outline-offset: 4px; }
 
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
   </style>
@@ -518,12 +525,13 @@
       <div class="launch-splash-logo">🏖️</div>
     </div>
     <div class="launch-content">
+      <button class="launch-close" id="launchClose" type="button" aria-label="안내 닫기">×</button>
       <div class="launch-logo" aria-hidden="true">🏖️</div>
       <p class="launch-name">바다모아</p>
       <h1 class="launch-title" id="launchTitle">부산 바다를 한눈에</h1>
       <p class="launch-description" id="launchDescription">이 웹의 데이터는 <strong>시연용 예상 데이터</strong>입니다.</p>
       <p class="launch-subtext">실제 방문과 입수 전에는 현장 안전요원과 공식 안내를 확인해 주세요.</p>
-      <button class="launch-start" id="launchStart" type="button">확인하고 시작하기</button>
+      <label class="launch-skip-day"><input id="launchSkipDay" type="checkbox">하루 동안 보지 않기</label>
     </div>
   </div>
   <main class="app" id="appTop">
@@ -981,7 +989,7 @@
           .addTo(beachMap);
         const hitArea = L.circleMarker([beach.lat, beach.lon], { radius: 20, stroke: false, fill: true, fillOpacity: 0, className: 'beach-hit-area' })
           .addTo(beachMap)
-          .bindTooltip(`${beach.name}해수욕장`, { direction: 'top', offset: [0, -8] })
+          .bindTooltip(`${beach.name}해수욕장`, { permanent: true, direction: 'top', offset: [0, -8], className: 'beach-name-label' })
           .on('click', () => {
             selectBeach(index);
             showPage('transportPage');
@@ -1209,22 +1217,28 @@
     });
 
     const launchScreen = document.querySelector('#launchScreen');
-    const launchStart = document.querySelector('#launchStart');
-    if (sessionStorage.getItem('badamoa-launch-notice') === 'seen') {
-      launchScreen.classList.add('is-closed');
-      launchScreen.setAttribute('aria-hidden', 'true');
-    } else {
-      document.body.classList.add('launch-open');
-      setTimeout(() => {
-        launchScreen.classList.add('show-notice');
-        setTimeout(() => launchStart.focus(), 500);
-      }, 1500);
-    }
-    launchStart.addEventListener('click', () => {
-      sessionStorage.setItem('badamoa-launch-notice', 'seen');
+    const launchClose = document.querySelector('#launchClose');
+    const launchSkipDay = document.querySelector('#launchSkipDay');
+    const hideNoticeUntil = Number(localStorage.getItem('badamoa-notice-hide-until') || 0);
+    const closeLaunch = () => {
       launchScreen.classList.add('is-closed');
       document.body.classList.remove('launch-open');
       setTimeout(() => launchScreen.setAttribute('aria-hidden', 'true'), 340);
+    };
+    document.body.classList.add('launch-open');
+    setTimeout(() => {
+      if (Date.now() < hideNoticeUntil) {
+        closeLaunch();
+      } else {
+        launchScreen.classList.add('show-notice');
+        setTimeout(() => launchClose.focus(), 500);
+      }
+    }, 1500);
+    launchClose.addEventListener('click', closeLaunch);
+    launchSkipDay.addEventListener('change', () => {
+      if (!launchSkipDay.checked) return;
+      localStorage.setItem('badamoa-notice-hide-until', String(Date.now() + 24 * 60 * 60 * 1000));
+      closeLaunch();
     });
 
     selectBeach(0);
