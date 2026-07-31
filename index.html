@@ -1870,7 +1870,6 @@
       avatarOptions.querySelectorAll('.avatar-option').forEach((button, index) => button.setAttribute('aria-pressed', String(avatarChoices[index] === avatar)));
       updateProfileLabel();
       saveCurrentUserData();
-      closeAvatar();
     };
     avatarOptions.innerHTML = avatarChoices.map(avatar => `<button class="avatar-option" type="button" aria-label="${avatar} 프로필 선택" aria-pressed="${avatar === currentAvatar}">${avatar}</button>`).join('');
     avatarOptions.querySelectorAll('.avatar-option').forEach((button, index) => {
