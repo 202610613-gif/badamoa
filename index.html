@@ -418,6 +418,7 @@
     .map-shell { padding: 14px; border: 1px solid rgba(103,171,216,.14); border-radius: 25px; background: rgba(255,255,255,.9); box-shadow: 0 14px 36px rgba(75,129,169,.10); }
     .map-title { margin: 4px 3px 13px; font-family: "Jua", sans-serif; color: #315f7e; font-size: 22px; font-weight: 400; }
     #beachMap { height: min(58svh, 480px); min-height: 390px; border-radius: 18px; background: #dff1fc; overflow: hidden; }
+    #jellyMap, #facilityMap { height: 320px; margin-top: 12px; border-radius: 16px; background: #dff1fc; overflow: hidden; }
     .map-fallback { display: none; gap: 7px; margin-top: 10px; }
     .map-fallback button { width: 100%; padding: 12px; border: 0; border-radius: 11px; color: #397fae; background: #edf7fd; text-align: left; font: inherit; font-size: 13px; cursor: pointer; }
     .map-data-panel { margin-top: 12px; padding: 15px; border-radius: 18px; background: #f3f9fd; }
@@ -674,7 +675,7 @@
         <div class="map-data-panel">
           <div class="map-data-head"><strong>🪼 해파리 주의 예상 구역</strong><span class="demo-badge">시연용 예상</span></div>
           <p>계절과 수온을 바탕으로 표현한 예시 구역이며 실제 출현 신고나 입수 통제 정보가 아닙니다.</p>
-          <div class="map-filter-list"><button class="map-filter jelly-filter" id="jellyLayerToggle" type="button" aria-pressed="true">🪼 예상 구역 표시</button></div>
+          <div id="jellyMap" aria-label="시연용 해파리 주의 예상 구역 지도"></div>
         </div>
         <div class="map-data-panel">
           <div class="map-data-head"><strong>해변 편의시설</strong><span class="demo-badge">예시 데이터</span></div>
@@ -685,6 +686,7 @@
             <button class="map-filter" type="button" data-facility-type="샤워실" aria-pressed="true">🚿 샤워실</button>
             <button class="map-filter" type="button" data-facility-type="물품보관소" aria-pressed="true">🧳 물품보관소</button>
           </div>
+          <div id="facilityMap" aria-label="해변 편의시설 예시 지도"></div>
         </div>
       </div>
       <a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a>
@@ -927,6 +929,8 @@
     let selectedIndex = 0;
     const liveCache = new Map();
     let beachMap = null;
+    let jellyMap = null;
+    let facilityMap = null;
     const beachMarkers = [];
     let jellyLayer = null;
     const facilityLayers = new Map();
@@ -1079,6 +1083,8 @@
     function initBeachMap() {
       if (beachMap) {
         beachMap.invalidateSize();
+        jellyMap?.invalidateSize();
+        facilityMap?.invalidateSize();
         return;
       }
       const fallback = document.querySelector('#mapFallback');
@@ -1112,34 +1118,43 @@
           });
         beachMarkers.push(marker);
       });
+      jellyMap = L.map('jellyMap', { zoomControl: false }).setView([35.16, 129.16], 11);
+      L.control.zoom({ position: 'bottomright' }).addTo(jellyMap);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(jellyMap);
       jellyLayer = L.layerGroup(jellyDemoZones.map(zone =>
         L.circle([zone.lat, zone.lon], { radius: zone.radius, color: '#e6788b', weight: 2, fillColor: '#f5a2b0', fillOpacity: .2 })
           .bindTooltip(`🪼 ${zone.name}<br>시연용 예상 구역`)
-      )).addTo(beachMap);
+      )).addTo(jellyMap);
+      jellyMap.fitBounds(jellyDemoZones.map(zone => [zone.lat,zone.lon]), { padding: [28,28] });
+
+      facilityMap = L.map('facilityMap', { zoomControl: false }).setView([35.18, 129.12], 10);
+      L.control.zoom({ position: 'bottomright' }).addTo(facilityMap);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(facilityMap);
       ['화장실','탈의실','샤워실','물품보관소'].forEach(type => {
         const markers = facilityDemoData.filter(item => item.type === type).map(item =>
           L.marker([item.lat,item.lon], {
             icon: L.divIcon({ className: 'facility-map-icon', html: item.icon, iconSize: [30,30], iconAnchor: [15,15] })
           }).bindTooltip(`${item.name}<br>${item.type} · 예시 데이터`)
         );
-        facilityLayers.set(type, L.layerGroup(markers).addTo(beachMap));
+        facilityLayers.set(type, L.layerGroup(markers).addTo(facilityMap));
       });
+      facilityMap.fitBounds(facilityDemoData.map(item => [item.lat,item.lon]), { padding: [28,28] });
       beachMap.fitBounds(beaches.map(beach => [beach.lat, beach.lon]), { padding: [22, 22] });
     }
 
-    document.querySelector('#jellyLayerToggle').addEventListener('click', event => {
-      const active = event.currentTarget.getAttribute('aria-pressed') === 'true';
-      event.currentTarget.setAttribute('aria-pressed', String(!active));
-      if (!beachMap || !jellyLayer) return;
-      active ? beachMap.removeLayer(jellyLayer) : jellyLayer.addTo(beachMap);
-    });
     document.querySelectorAll('[data-facility-type]').forEach(button => button.addEventListener('click', () => {
       const type = button.dataset.facilityType;
       const active = button.getAttribute('aria-pressed') === 'true';
       button.setAttribute('aria-pressed', String(!active));
       const layer = facilityLayers.get(type);
-      if (!beachMap || !layer) return;
-      active ? beachMap.removeLayer(layer) : layer.addTo(beachMap);
+      if (!facilityMap || !layer) return;
+      active ? facilityMap.removeLayer(layer) : layer.addTo(facilityMap);
     }));
 
     const weatherIcons = code => code === 0 ? '☀️' : code < 4 ? '🌤️' : code < 58 ? '☁️' : code < 82 ? '🌧️' : '⛈️';
