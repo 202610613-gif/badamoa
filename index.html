@@ -451,11 +451,43 @@
     .launch-screen {
       position: fixed; inset: 0; z-index: 1000;
       display: grid; place-items: center; padding: 24px;
-      background: #fff; opacity: 1; visibility: visible;
+      background: #087fbd; opacity: 1; visibility: visible;
       transition: opacity .32s ease, visibility .32s ease;
     }
     .launch-screen.is-closed { opacity: 0; visibility: hidden; pointer-events: none; }
-    .launch-content { width: min(100%, 390px); text-align: center; }
+    .launch-splash {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      opacity: 1;
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .launch-splash-logo {
+      display: grid; place-items: center;
+      width: 126px; height: 126px;
+      border-radius: 34px;
+      color: #fff;
+      background: rgba(255,255,255,.16);
+      box-shadow: 0 24px 60px rgba(0,50,90,.24);
+      font-size: 66px;
+      transform: scale(.58);
+      animation: launchLogoGrow 1.25s cubic-bezier(.18,.82,.3,1) forwards;
+    }
+    @keyframes launchLogoGrow {
+      0% { opacity: 0; transform: scale(.55); }
+      68% { opacity: 1; transform: scale(1.08); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .launch-screen.show-notice { background: #fff; transition: background .55s ease; }
+    .launch-screen.show-notice .launch-splash { opacity: 0; transform: scale(1.18); pointer-events: none; }
+    .launch-content {
+      width: min(100%, 390px);
+      text-align: center;
+      opacity: 0;
+      transform: translateY(18px);
+      pointer-events: none;
+      transition: opacity .55s ease .18s, transform .55s ease .18s;
+    }
+    .launch-screen.show-notice .launch-content { opacity: 1; transform: translateY(0); pointer-events: auto; }
     .launch-logo {
       display: grid; place-items: center;
       width: 112px; height: 112px; margin: 0 auto;
@@ -482,6 +514,9 @@
 </head>
 <body>
   <div class="launch-screen" id="launchScreen" role="dialog" aria-modal="true" aria-labelledby="launchTitle" aria-describedby="launchDescription">
+    <div class="launch-splash" aria-hidden="true">
+      <div class="launch-splash-logo">🏖️</div>
+    </div>
     <div class="launch-content">
       <div class="launch-logo" aria-hidden="true">🏖️</div>
       <p class="launch-name">바다모아</p>
@@ -1180,7 +1215,10 @@
       launchScreen.setAttribute('aria-hidden', 'true');
     } else {
       document.body.classList.add('launch-open');
-      requestAnimationFrame(() => launchStart.focus());
+      setTimeout(() => {
+        launchScreen.classList.add('show-notice');
+        setTimeout(() => launchStart.focus(), 500);
+      }, 1500);
     }
     launchStart.addEventListener('click', () => {
       sessionStorage.setItem('badamoa-launch-notice', 'seen');
