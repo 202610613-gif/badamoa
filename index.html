@@ -907,9 +907,9 @@
 
     // 아래 좌표는 지도 기능을 시연하기 위한 예시이며 실제 시설·해파리 신고 데이터가 아닙니다.
     const jellyDemoZones = [
-      { name: '해운대 앞바다 예상 구역', lat: 35.157, lon: 129.164, radius: 850 },
-      { name: '광안리 앞바다 예상 구역', lat: 35.151, lon: 129.121, radius: 700 },
-      { name: '송정 앞바다 예상 구역', lat: 35.178, lon: 129.205, radius: 700 }
+      { beach: '해운대', name: '해운대 앞바다 예상 구역', lat: 35.157, lon: 129.164, radius: 850 },
+      { beach: '광안리', name: '광안리 앞바다 예상 구역', lat: 35.151, lon: 129.121, radius: 700 },
+      { beach: '송정', name: '송정 앞바다 예상 구역', lat: 35.178, lon: 129.205, radius: 700 }
     ];
     const facilityDemoData = [
       ['해운대 해변 화장실','화장실','🚻',35.1590,129.1608], ['해운대 관광안내소 탈의실','탈의실','👕',35.1581,129.1600],
@@ -1126,7 +1126,7 @@
       }).addTo(jellyMap);
       jellyLayer = L.layerGroup(jellyDemoZones.map(zone =>
         L.circle([zone.lat, zone.lon], { radius: zone.radius, color: '#e6788b', weight: 2, fillColor: '#f5a2b0', fillOpacity: .2 })
-          .bindTooltip(`🪼 ${zone.name}<br>시연용 예상 구역`)
+          .bindTooltip(`🪼 ${zone.beach}해수욕장 · 예상 구역`, { permanent: true, direction: 'center', className: 'beach-name-label' })
       )).addTo(jellyMap);
       jellyMap.fitBounds(jellyDemoZones.map(zone => [zone.lat,zone.lon]), { padding: [28,28] });
 
@@ -1143,6 +1143,11 @@
           }).bindTooltip(`${item.name}<br>${item.type} · 예시 데이터`)
         );
         facilityLayers.set(type, L.layerGroup(markers).addTo(facilityMap));
+      });
+      beaches.forEach(beach => {
+        L.circleMarker([beach.lat,beach.lon], { radius: 4, color: '#fff', weight: 2, fillColor: '#68b8e8', fillOpacity: 1, interactive: false })
+          .addTo(facilityMap)
+          .bindTooltip(`${beach.name}해수욕장`, { permanent: true, direction: 'top', offset: [0,-5], className: 'beach-name-label' });
       });
       facilityMap.fitBounds(facilityDemoData.map(item => [item.lat,item.lon]), { padding: [28,28] });
       beachMap.fitBounds(beaches.map(beach => [beach.lat, beach.lon]), { padding: [22, 22] });
