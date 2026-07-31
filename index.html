@@ -87,6 +87,10 @@
     .drawer-profile-copy strong { display: block; color: #315f7e; font-size: 17px; }
     .drawer-profile-copy small { color: #7892a9; font-size: 10px; }
     .profile-change { padding: 8px 10px; border: 0; border-radius: 10px; color: #397fae; background: #fff; font-size: 12px; cursor: pointer; }
+    .account-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: -9px 0 17px; }
+    .account-actions button { min-height: 39px; border: 0; border-radius: 11px; font: inherit; font-size: 12px; cursor: pointer; }
+    .account-logout { color: #397fae; background: #e4f3fc; }
+    .account-delete { color: #c95762; background: #fff0f1; }
     .drawer-close { width: 38px; height: 38px; border: 0; border-radius: 12px; color: #527992; background: #e4f3fc; font-size: 20px; cursor: pointer; }
     .drawer-intro { margin: -10px 0 17px; color: #7892a9; font-size: 13px; line-height: 1.55; }
     .drawer-menu { display: grid; gap: 9px; }
@@ -613,6 +617,11 @@
     .avatar-option[aria-pressed="true"] { border-color: #68b8e8; background: #dff3ff; }
     .avatar-upload { display: flex; align-items: center; justify-content: center; min-height: 49px; border: 2px dashed #b9def0; border-radius: 14px; color: #397fae; background: #f7fcff; cursor: pointer; }
     .avatar-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .account-confirm-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 9px; margin-top: 18px; }
+    .account-confirm-actions button { min-height: 48px; border: 0; border-radius: 13px; font: inherit; cursor: pointer; }
+    .account-confirm-cancel { color: #55778e; background: #edf5fa; }
+    .account-confirm-action { color: #fff; background: #397fae; }
+    .account-confirm-action.is-danger { background: #d85f69; }
 
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
   </style>
@@ -652,6 +661,17 @@
       <div class="avatar-options" id="avatarOptions" role="group" aria-label="기본 프로필 이모티콘"></div>
       <label class="avatar-upload">📷 내 사진 선택하기<input id="avatarFile" type="file" accept="image/*"></label>
       <p class="profile-error" id="avatarError" role="alert"></p>
+    </div>
+  </div>
+  <div class="profile-screen" id="accountConfirmScreen" role="dialog" aria-modal="true" aria-labelledby="accountConfirmTitle" aria-hidden="true">
+    <div class="profile-dialog">
+      <span aria-hidden="true" id="accountConfirmIcon">👋</span>
+      <h2 id="accountConfirmTitle">로그아웃할까요?</h2>
+      <p id="accountConfirmDescription">저장한 정보는 이 기기에 안전하게 남아 있으며 같은 이름으로 다시 로그인하면 불러올 수 있어요.</p>
+      <div class="account-confirm-actions">
+        <button class="account-confirm-cancel" id="accountConfirmCancel" type="button">취소</button>
+        <button class="account-confirm-action" id="accountConfirmAction" type="button">로그아웃</button>
+      </div>
     </div>
   </div>
   <main class="app" id="appTop">
@@ -840,6 +860,7 @@
   <aside class="app-drawer" id="appDrawer" aria-label="해양 생태·관광 메뉴" aria-hidden="true">
     <div class="drawer-head"><strong>바다모아 더보기</strong><button class="drawer-close" id="drawerClose" type="button" aria-label="메뉴 닫기">✕</button></div>
     <div class="drawer-profile"><button class="drawer-profile-icon" id="drawerProfileIcon" type="button" aria-label="프로필 이미지 변경">☺</button><span class="drawer-profile-copy"><strong id="drawerUserName">방문자님</strong><small>아이콘을 눌러 프로필 변경</small></span><button class="profile-change" id="profileChange" type="button">이름 변경</button></div>
+    <div class="account-actions"><button class="account-logout" id="logoutButton" type="button">로그아웃</button><button class="account-delete" id="deleteAccountButton" type="button">모든 정보 삭제</button></div>
     <p class="drawer-intro">안전한 바다 관광과 생태 보호를 위한 AI 도구를 만나보세요.</p>
     <div class="drawer-menu">
       <button class="drawer-item" data-drawer-page="jellyfishPage"><span class="drawer-icon">🪼</span><span class="drawer-copy"><strong>해파리 위험 예상</strong><small>계절·수온 기반 주의 단계</small></span><span class="drawer-arrow">›</span></button>
@@ -1162,6 +1183,7 @@
 
     function persistSavedPlaces() {
       localStorage.setItem('badamoa-saved-places', JSON.stringify(savedPlaces));
+      if (typeof saveCurrentUserData === 'function') saveCurrentUserData();
       renderSavedPlaces();
       renderLocalGuide(beaches[selectedIndex]);
     }
@@ -1257,7 +1279,24 @@
         `<article class="trip-stop"><time class="trip-time">${place.time}</time><span><strong>${place.order}. ${place.name}</strong><small>이동 약 ${place.travelMinutes}분 · ${place.beach} · ${place.category}</small></span></article>`
       ).join('');
       localStorage.setItem('badamoa-trip-plan', JSON.stringify({ route: scheduledRoute, duration, mode, pace, theme, startTime: document.querySelector('#tripStartTime').value, savedAt: Date.now() }));
+      if (typeof saveCurrentUserData === 'function') saveCurrentUserData();
       renderTripMap(scheduledRoute);
+    }
+
+    function restoreStoredTripPlan() {
+      let plan = null;
+      try { plan = JSON.parse(localStorage.getItem('badamoa-trip-plan') || 'null'); } catch (error) {}
+      if (!plan?.route?.length) return;
+      if (plan.startTime) document.querySelector('#tripStartTime').value = plan.startTime;
+      if (plan.duration) document.querySelector('#tripDuration').value = String(plan.duration);
+      if (plan.mode) document.querySelector('#tripMode').value = plan.mode;
+      if (plan.pace) document.querySelector('#tripPace').value = plan.pace;
+      if (plan.theme) document.querySelector('#tripTheme').value = plan.theme;
+      document.querySelector('#tripSummary').textContent = `${plan.startTime || '10:00'} 출발 · 저장된 맞춤 여행 일정이에요.`;
+      document.querySelector('#tripPlanList').innerHTML = plan.route.map((place,index) =>
+        `<article class="trip-stop"><time class="trip-time">${place.time || '--:--'}</time><span><strong>${place.order || index + 1}. ${place.name}</strong><small>이동 약 ${place.travelMinutes || 0}분 · ${place.beach} · ${place.category}</small></span></article>`
+      ).join('');
+      renderTripMap(plan.route);
     }
 
     function renderTripMap(route) {
@@ -1490,6 +1529,7 @@
     missionList.innerHTML = missions.map((mission, index) => `<label class="mission-item"><input type="checkbox" data-mission="${index}"><span>${mission}</span></label>`).join('');
     missionList.addEventListener('change', () => {
       try { localStorage.setItem('badamoaMissions', JSON.stringify([...missionList.querySelectorAll('input')].map(input => input.checked))); } catch (error) {}
+      if (typeof saveCurrentUserData === 'function') saveCurrentUserData();
     });
     try {
       const saved = JSON.parse(localStorage.getItem('badamoaMissions') || '[]');
@@ -1516,6 +1556,7 @@
       missionRetry.hidden = true;
       missionComplete.hidden = false;
       try { localStorage.removeItem('badamoaMissions'); } catch (error) {}
+      if (typeof saveCurrentUserData === 'function') saveCurrentUserData();
       missionList.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
@@ -1560,6 +1601,7 @@
       if (pageId === 'mapPage') setTimeout(initBeachMap, 80);
       if (pageId === 'tripPage') setTimeout(() => {
         renderSavedPlaces();
+        if (!document.querySelector('#tripPlanList').children.length) restoreStoredTripPlan();
         tripMap?.invalidateSize();
       }, 80);
     }
@@ -1642,6 +1684,11 @@
     const avatarScreen = document.querySelector('#avatarScreen');
     const avatarOptions = document.querySelector('#avatarOptions');
     const avatarError = document.querySelector('#avatarError');
+    const accountConfirmScreen = document.querySelector('#accountConfirmScreen');
+    const accountConfirmTitle = document.querySelector('#accountConfirmTitle');
+    const accountConfirmDescription = document.querySelector('#accountConfirmDescription');
+    const accountConfirmIcon = document.querySelector('#accountConfirmIcon');
+    const accountConfirmAction = document.querySelector('#accountConfirmAction');
     const avatarChoices = ['☺','🏖️','🌊','🐬','🐳','🐚','🪼','🐢','⭐','😎'];
     const profileStartParams = new URLSearchParams(location.search);
     if (profileStartParams.get('profile') === 'setup') {
@@ -1654,9 +1701,65 @@
     }
     let currentProfileName = localStorage.getItem('badamoa-profile-name') || '';
     let currentAvatar = localStorage.getItem('badamoa-profile-avatar') || '☺';
+    let profileEntryMode = currentProfileName ? 'rename' : 'login';
+    let accountConfirmMode = 'logout';
     const getUsedNames = () => {
       try { return JSON.parse(localStorage.getItem('badamoa-used-names') || '[]'); }
       catch (error) { return []; }
+    };
+    const userStorageKey = name => `badamoa-user-${encodeURIComponent(name.trim().toLocaleLowerCase())}`;
+    const resetMissionView = () => {
+      let checks = [];
+      try { checks = JSON.parse(localStorage.getItem('badamoaMissions') || '[]'); } catch (error) {}
+      missionList.querySelectorAll('input').forEach((input,index) => {
+        input.checked = Boolean(checks[index]);
+        input.disabled = false;
+      });
+      missionResult.hidden = true;
+      missionRetry.hidden = true;
+      missionComplete.hidden = false;
+    };
+    const saveCurrentUserData = () => {
+      if (!currentProfileName) return;
+      const record = {
+        avatar: currentAvatar,
+        savedPlaces,
+        tripPlan: localStorage.getItem('badamoa-trip-plan'),
+        missions: localStorage.getItem('badamoaMissions')
+      };
+      localStorage.setItem(userStorageKey(currentProfileName), JSON.stringify(record));
+    };
+    const loadUserData = name => {
+      let record = null;
+      try { record = JSON.parse(localStorage.getItem(userStorageKey(name)) || 'null'); } catch (error) {}
+      currentAvatar = record?.avatar || '☺';
+      savedPlaces = Array.isArray(record?.savedPlaces) ? record.savedPlaces : [];
+      localStorage.setItem('badamoa-profile-avatar', currentAvatar);
+      localStorage.setItem('badamoa-saved-places', JSON.stringify(savedPlaces));
+      record?.tripPlan ? localStorage.setItem('badamoa-trip-plan', record.tripPlan) : localStorage.removeItem('badamoa-trip-plan');
+      record?.missions ? localStorage.setItem('badamoaMissions', record.missions) : localStorage.removeItem('badamoaMissions');
+      resetMissionView();
+      renderSavedPlaces();
+      renderLocalGuide(beaches[selectedIndex]);
+      renderTransport(beaches[selectedIndex]);
+    };
+    const clearActiveUser = () => {
+      localStorage.removeItem('badamoa-profile-name');
+      localStorage.removeItem('badamoa-profile-avatar');
+      localStorage.removeItem('badamoa-saved-places');
+      localStorage.removeItem('badamoa-trip-plan');
+      localStorage.removeItem('badamoaMissions');
+      currentProfileName = '';
+      currentAvatar = '☺';
+      savedPlaces = [];
+      resetMissionView();
+      renderSavedPlaces();
+      renderLocalGuide(beaches[selectedIndex]);
+      renderTransport(beaches[selectedIndex]);
+      document.querySelector('#tripPlanList').innerHTML = '';
+      document.querySelector('#tripSummary').textContent = '장소를 두 곳 이상 저장하면 동선을 만들 수 있어요.';
+      document.querySelector('#tripMap').style.display = 'none';
+      updateProfileLabel();
     };
     const updateProfileLabel = () => {
       drawerUserName.textContent = currentProfileName ? `${currentProfileName}님` : '방문자님';
@@ -1665,8 +1768,11 @@
         ? `<img src="${currentAvatar}" alt="">`
         : currentAvatar;
     };
-    const openProfile = () => {
-      profileName.value = currentProfileName;
+    const openProfile = (mode = currentProfileName ? 'rename' : 'login') => {
+      profileEntryMode = mode;
+      profileName.value = mode === 'login' ? '' : currentProfileName;
+      document.querySelector('#profileTitle').textContent = mode === 'login' ? '이름으로 로그인하세요' : '사용할 이름을 알려주세요';
+      profileForm.querySelector('.profile-save').textContent = mode === 'login' ? '로그인 또는 새로 시작하기' : '이 이름으로 변경하기';
       profileError.textContent = '';
       profileScreen.classList.add('is-visible');
       profileScreen.setAttribute('aria-hidden', 'false');
@@ -1676,6 +1782,9 @@
       profileScreen.classList.remove('is-visible');
       profileScreen.setAttribute('aria-hidden', 'true');
     };
+    if (currentProfileName) {
+      localStorage.getItem(userStorageKey(currentProfileName)) ? loadUserData(currentProfileName) : saveCurrentUserData();
+    }
     updateProfileLabel();
     profileForm.addEventListener('submit', event => {
       event.preventDefault();
@@ -1685,22 +1794,66 @@
         return;
       }
       const usedNames = getUsedNames();
-      if (nextName !== currentProfileName && usedNames.some(name => name.toLocaleLowerCase() === nextName.toLocaleLowerCase())) {
+      if (profileEntryMode === 'rename' && nextName !== currentProfileName && usedNames.some(name => name.toLocaleLowerCase() === nextName.toLocaleLowerCase())) {
         profileError.textContent = '이 기기에서 이미 사용한 이름이에요. 다른 이름을 입력해 주세요.';
         return;
       }
       const previousName = currentProfileName;
+      if (profileEntryMode === 'rename' && previousName) saveCurrentUserData();
       currentProfileName = nextName;
-      const revisedNames = usedNames.filter(name => name !== previousName);
+      if (profileEntryMode === 'login') {
+        loadUserData(nextName);
+      } else if (previousName && previousName !== nextName) {
+        const previousRecord = localStorage.getItem(userStorageKey(previousName));
+        if (previousRecord) localStorage.setItem(userStorageKey(nextName), previousRecord);
+      }
+      const revisedNames = profileEntryMode === 'rename' ? usedNames.filter(name => name !== previousName) : usedNames;
       revisedNames.push(nextName);
       localStorage.setItem('badamoa-profile-name', nextName);
       localStorage.setItem('badamoa-used-names', JSON.stringify([...new Set(revisedNames)]));
+      saveCurrentUserData();
       updateProfileLabel();
       closeProfile();
     });
     document.querySelector('#profileChange').addEventListener('click', () => {
       toggleMenu(false);
-      openProfile();
+      openProfile('rename');
+    });
+    const closeAccountConfirm = () => {
+      accountConfirmScreen.classList.remove('is-visible');
+      accountConfirmScreen.setAttribute('aria-hidden', 'true');
+    };
+    const openAccountConfirm = mode => {
+      accountConfirmMode = mode;
+      const deleting = mode === 'delete';
+      accountConfirmIcon.textContent = deleting ? '⚠️' : '👋';
+      accountConfirmTitle.textContent = deleting ? '모든 정보를 삭제할까요?' : '로그아웃할까요?';
+      accountConfirmDescription.textContent = deleting
+        ? '이름·프로필·저장 장소·여행 일정·미션 기록이 모두 삭제되며 복구할 수 없습니다.'
+        : '저장한 정보는 이 기기에 남아 있으며 같은 이름으로 다시 로그인하면 불러올 수 있어요.';
+      accountConfirmAction.textContent = deleting ? '모든 정보 삭제' : '로그아웃';
+      accountConfirmAction.classList.toggle('is-danger', deleting);
+      toggleMenu(false);
+      accountConfirmScreen.classList.add('is-visible');
+      accountConfirmScreen.setAttribute('aria-hidden', 'false');
+      setTimeout(() => accountConfirmAction.focus(), 100);
+    };
+    document.querySelector('#logoutButton').addEventListener('click', () => openAccountConfirm('logout'));
+    document.querySelector('#deleteAccountButton').addEventListener('click', () => openAccountConfirm('delete'));
+    document.querySelector('#accountConfirmCancel').addEventListener('click', closeAccountConfirm);
+    accountConfirmAction.addEventListener('click', () => {
+      const signedOutName = currentProfileName;
+      if (accountConfirmMode === 'logout') {
+        saveCurrentUserData();
+      } else if (signedOutName) {
+        localStorage.removeItem(userStorageKey(signedOutName));
+        const remainingNames = getUsedNames().filter(name => name.toLocaleLowerCase() !== signedOutName.toLocaleLowerCase());
+        localStorage.setItem('badamoa-used-names', JSON.stringify(remainingNames));
+      }
+      clearActiveUser();
+      closeAccountConfirm();
+      showPage('homePage');
+      openProfile('login');
     });
     const closeAvatar = () => {
       avatarScreen.classList.remove('is-visible');
@@ -1716,6 +1869,7 @@
       currentAvatar = avatar;
       avatarOptions.querySelectorAll('.avatar-option').forEach((button, index) => button.setAttribute('aria-pressed', String(avatarChoices[index] === avatar)));
       updateProfileLabel();
+      saveCurrentUserData();
       closeAvatar();
     };
     avatarOptions.innerHTML = avatarChoices.map(avatar => `<button class="avatar-option" type="button" aria-label="${avatar} 프로필 선택" aria-pressed="${avatar === currentAvatar}">${avatar}</button>`).join('');
