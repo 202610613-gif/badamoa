@@ -425,6 +425,18 @@
     }
     .home-return:hover { background: #d8effc; transform: translateY(-1px); }
     .home-return:focus-visible { outline: 3px solid rgba(104,184,232,.28); outline-offset: 2px; }
+    .page-return-actions { display: flex; align-items: stretch; gap: 9px; margin-top: 20px; }
+    .page-return-actions .home-return { flex: 1; width: auto; margin-top: 0; }
+    .map-return {
+      display: flex; flex: 0 0 76px; align-items: center; justify-content: center; gap: 5px;
+      min-height: 54px; border: 1px solid rgba(103,171,216,.16); border-radius: 15px;
+      color: #397fae; background: #f4faff; text-decoration: none;
+      font-size: 14px; font-weight: 400;
+      transition: background .2s ease, transform .2s ease;
+    }
+    .map-return svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+    .map-return:hover { background: #e7f5fd; transform: translateY(-1px); }
+    .map-return:focus-visible { outline: 3px solid rgba(104,184,232,.28); outline-offset: 2px; }
 
     /* 설명, 주소, 시간 등 부가 정보는 가볍고 편안하게 표시 */
     .updated, .count, .place-meta, .intro p, .status-copy small, .status-copy p,
@@ -651,7 +663,13 @@
       <div class="page-context"><span>TRANSIT PAGE</span><select class="page-beach-select" data-beach-select aria-label="교통 정보를 확인할 해수욕장 선택"></select></div>
       <div class="info-head"><div><p>PARKING · TRANSIT</p><h2 id="transportTitle">주차 · 대중교통 안내</h2></div><span>실제 장소</span></div>
       <div class="transport-list" id="transportList"></div>
-      <a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a>
+      <div class="page-return-actions">
+        <a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a>
+        <a class="map-return" href="#mapPage" aria-label="바다 지도로 돌아가기">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 6 5-3 8 3 5-3v15l-5 3-8-3-5 3z"/><path d="M8 3v15M16 6v15"/></svg>
+          <span>지도</span>
+        </a>
+      </div>
     </section>
 
     <section class="app-page" id="jellyfishPage"><div class="page-context"><span>JELLYFISH AI</span><select class="page-beach-select" data-beach-select aria-label="해파리 위험을 확인할 해수욕장 선택"></select></div><div class="feature-page"><h2 class="feature-title">🪼 해파리 위험 예상</h2><p class="feature-desc">계절·수온·파도 조건을 조합한 AI 참고용 예상입니다. 실제 출현 정보는 현장 안전요원 안내를 우선하세요.</p><div class="feature-result" id="jellyfishResult"></div></div><a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a></section>
@@ -1180,6 +1198,13 @@
       link.addEventListener('click', event => {
         event.preventDefault();
         showPage('homePage');
+      });
+    });
+
+    document.querySelectorAll('.map-return').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        showPage('mapPage');
       });
     });
 
