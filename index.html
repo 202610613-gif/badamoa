@@ -318,6 +318,9 @@
       transition: background .2s ease, transform .2s ease;
     }
     .local-item:hover { background: #e9f5fc; transform: translateY(-1px); }
+    .local-main { display: flex; align-items: center; gap: 11px; min-width: 0; flex: 1; color: inherit; text-decoration: none; }
+    .save-place { flex: 0 0 auto; min-width: 48px; min-height: 38px; padding: 0 9px; border: 0; border-radius: 11px; color: #397fae; background: #dff1fc; font: inherit; font-size: 12px; cursor: pointer; }
+    .save-place.is-saved { color: #fff; background: #68b8e8; }
     .local-icon { display: grid; place-items: center; flex: 0 0 auto; width: 37px; height: 37px; border-radius: 12px; background: #dff1fc; font-size: 17px; }
     .local-copy { min-width: 0; flex: 1; }
     .local-copy strong { display: block; color: #426a84; font-size: 16px; font-weight: 400; }
@@ -432,6 +435,27 @@
     .map-filter[aria-pressed="true"] { color: #fff; border-color: #68b8e8; background: #68b8e8; }
     .map-filter.jelly-filter[aria-pressed="true"] { border-color: #ef8fa0; background: #ef8fa0; }
     .facility-map-icon { display: grid; place-items: center; width: 30px !important; height: 30px !important; border: 2px solid #fff; border-radius: 10px; background: #397fae; box-shadow: 0 5px 14px rgba(49,80,108,.25); font-size: 16px; }
+    .trip-card { padding: 19px; border: 1px solid rgba(103,171,216,.14); border-radius: 24px; background: rgba(255,255,255,.92); box-shadow: 0 14px 36px rgba(75,129,169,.09); }
+    .trip-card + .trip-card { margin-top: 13px; }
+    .trip-card h2 { margin: 0 0 6px; color: #315f7e; font-size: 22px; }
+    .trip-card > p { margin: 0 0 15px; color: #7892a9; font-size: 12px; line-height: 1.55; }
+    .trip-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .trip-settings label { color: #6f899c; font-size: 11px; }
+    .trip-settings select { width: 100%; min-height: 43px; margin-top: 5px; padding: 0 10px; border: 1px solid #cbe6f5; border-radius: 11px; color: #397fae; background: #f4faff; font: inherit; font-size: 13px; }
+    .saved-place-list, .trip-plan-list { display: grid; gap: 8px; }
+    .saved-place { display: flex; align-items: center; gap: 10px; padding: 11px; border-radius: 14px; background: #f1f8fc; }
+    .saved-place-icon { font-size: 22px; }
+    .saved-place-copy { min-width: 0; flex: 1; }
+    .saved-place-copy strong { display: block; color: #426b86; font-size: 14px; }
+    .saved-place-copy small { color: #829aaa; font-size: 10px; }
+    .saved-place-remove { width: 35px; height: 35px; border: 0; border-radius: 10px; color: #d86670; background: #fff; cursor: pointer; }
+    .trip-empty { padding: 18px; border-radius: 14px; color: #7892a9; background: #f3f9fd; text-align: center; font-size: 12px; line-height: 1.55; }
+    .trip-generate { width: 100%; min-height: 49px; margin-top: 13px; border: 0; border-radius: 14px; color: #fff; background: linear-gradient(135deg,#68b8e8,#4d9fd3); font: inherit; font-size: 15px; cursor: pointer; }
+    .trip-stop { display: grid; grid-template-columns: 50px 1fr; gap: 10px; padding: 12px; border-radius: 14px; background: #f1f8fc; }
+    .trip-time { color: #397fae; font-size: 12px; }
+    .trip-stop strong { color: #315f7e; font-size: 14px; }
+    .trip-stop small { display: block; margin-top: 3px; color: #7892a9; font-size: 10px; }
+    #tripMap { display: none; height: 280px; margin-top: 13px; border-radius: 16px; overflow: hidden; }
     .leaflet-container { font-family: "Jua", sans-serif; }
     .leaflet-tooltip { border: 0; border-radius: 9px; color: #397fae; box-shadow: 0 4px 14px rgba(49,80,108,.15); font-size: 10px; font-weight: 900; }
     .leaflet-tooltip.beach-name-label { padding: 5px 8px; background: rgba(255,255,255,.94); white-space: nowrap; }
@@ -704,6 +728,31 @@
       <a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a>
     </section>
 
+    <section class="app-page" id="tripPage" aria-labelledby="tripTitle">
+      <div class="page-context"><span>MY BEACH TRIP</span><span class="selected-beach-name">맞춤 여행</span></div>
+      <div class="trip-card">
+        <h2 id="tripTitle">🧭 저장한 장소</h2>
+        <p>주변 추천에서 저장한 장소를 모아 여행 동선을 만들 수 있어요.</p>
+        <div class="saved-place-list" id="savedPlaceList"></div>
+      </div>
+      <div class="trip-card">
+        <h2>여행 조건</h2>
+        <p>현재 선택한 해수욕장에서 출발하는 일정으로 구성해요.</p>
+        <div class="trip-settings">
+          <label>여행 시간<select id="tripDuration"><option value="3">3시간</option><option value="6" selected>6시간</option><option value="9">하루 9시간</option></select></label>
+          <label>이동수단<select id="tripMode"><option value="walk">도보 중심</option><option value="transit" selected>대중교통</option><option value="car">자동차</option></select></label>
+        </div>
+        <button class="trip-generate" id="tripGenerate" type="button">✦ 맞춤 동선 만들기</button>
+      </div>
+      <div class="trip-card" id="tripResultCard">
+        <h2>추천 여행 동선</h2>
+        <p id="tripSummary">장소를 두 곳 이상 저장하면 동선을 만들 수 있어요.</p>
+        <div class="trip-plan-list" id="tripPlanList"></div>
+        <div id="tripMap" aria-label="저장한 장소의 추천 이동 동선 지도"></div>
+      </div>
+      <a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a>
+    </section>
+
     <div class="app-page" id="localPage">
     <div class="page-context"><span>LOCAL PAGE</span><select class="page-beach-select" data-beach-select aria-label="주변 추천을 확인할 해수욕장 선택"></select></div>
     <section class="near-card" aria-labelledby="nearTitle">
@@ -774,6 +823,7 @@
     <div class="drawer-menu">
       <button class="drawer-item" data-drawer-page="jellyfishPage"><span class="drawer-icon">🪼</span><span class="drawer-copy"><strong>해파리 위험 예상</strong><small>계절·수온 기반 주의 단계</small></span><span class="drawer-arrow">›</span></button>
       <button class="drawer-item" data-drawer-page="safetyPage"><span class="drawer-icon">🛡️</span><span class="drawer-copy"><strong>해양 안전 점수</strong><small>물놀이·산책 행동 추천</small></span><span class="drawer-arrow">›</span></button>
+      <button class="drawer-item" data-drawer-page="hourlyPage"><span class="drawer-icon">◷</span><span class="drawer-copy"><strong>시간대별 혼잡도</strong><small>시간에 따른 방문 흐름</small></span><span class="drawer-arrow">›</span></button>
       <button class="drawer-item" data-drawer-page="speciesPage"><span class="drawer-icon">🐚</span><span class="drawer-copy"><strong>오늘의 해양생물</strong><small>관찰 생물과 생태 예절</small></span><span class="drawer-arrow">›</span></button>
       <button class="drawer-item" data-drawer-page="ecoRoutePage"><span class="drawer-icon">🌿</span><span class="drawer-copy"><strong>생태 탐방 코스</strong><small>바다와 지역 관광 연결</small></span><span class="drawer-arrow">›</span></button>
       <button class="drawer-item" data-drawer-page="cleanupPage"><span class="drawer-icon">♻️</span><span class="drawer-copy"><strong>해양 쓰레기 제보</strong><small>사진 기반 분류 체험</small></span><span class="drawer-arrow">›</span></button>
@@ -783,7 +833,7 @@
 
   <nav class="bottom-nav" aria-label="바다모아 주요 메뉴">
     <a class="nav-item" href="#mapPage" data-page="mapPage"><span class="nav-icon" aria-hidden="true">⌖</span><span>지도</span></a>
-    <a class="nav-item" href="#hourlyPage" data-page="hourlyPage"><span class="nav-icon" aria-hidden="true">◷</span><span>시간대</span></a>
+    <a class="nav-item" href="#tripPage" data-page="tripPage"><span class="nav-icon" aria-hidden="true">✈</span><span>여행</span></a>
     <a class="nav-item home-tab is-active" href="#homePage" data-page="homePage"><span class="nav-icon" aria-hidden="true">⌂</span><span>홈</span></a>
     <a class="nav-item" href="#localPage" data-page="localPage"><span class="nav-icon" aria-hidden="true">♡</span><span>주변 추천</span></a>
     <a class="nav-item" href="#transportPage" data-page="transportPage"><span class="nav-icon" aria-hidden="true">↔</span><span>교통</span></a>
@@ -932,9 +982,13 @@
     let beachMap = null;
     let jellyMap = null;
     let facilityMap = null;
+    let tripMap = null;
+    let tripRouteLayer = null;
     const beachMarkers = [];
     let jellyLayer = null;
     const facilityLayers = new Map();
+    let savedPlaces = [];
+    try { savedPlaces = JSON.parse(localStorage.getItem('badamoa-saved-places') || '[]'); } catch (error) {}
 
     beaches.forEach((beach, index) => {
       const button = document.createElement('button');
@@ -1059,13 +1113,122 @@
 
     function renderLocalGuide(beach) {
       document.querySelector('#localTitle').textContent = `${beach.name} 주변 추천`;
-      document.querySelector('#localList').innerHTML = beach.commerce.map(place => `
-        <a class="local-item" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.query)}" target="_blank" rel="noopener" aria-label="${place.name} 지도에서 보기">
-          <span class="local-icon" aria-hidden="true">${place.icon}</span>
-          <span class="local-copy"><strong>${place.name} · ${place.category}</strong><small>${place.detail}</small></span>
-          <span class="local-arrow" aria-hidden="true">›</span>
-        </a>`).join('');
+      document.querySelector('#localList').innerHTML = beach.commerce.map((place, placeIndex) => {
+        const id = `${beach.name}-${place.name}`;
+        const saved = savedPlaces.some(item => item.id === id);
+        return `<article class="local-item">
+          <a class="local-main" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.query)}" target="_blank" rel="noopener" aria-label="${place.name} 지도에서 보기">
+            <span class="local-icon" aria-hidden="true">${place.icon}</span>
+            <span class="local-copy"><strong>${place.name} · ${place.category}</strong><small>${place.detail}</small></span>
+            <span class="local-arrow" aria-hidden="true">›</span>
+          </a>
+          <button class="save-place ${saved ? 'is-saved' : ''}" type="button" data-save-place="${placeIndex}" aria-pressed="${saved}">${saved ? '저장됨' : '♡ 저장'}</button>
+        </article>`;
+      }).join('');
+      document.querySelectorAll('[data-save-place]').forEach(button => button.addEventListener('click', () => {
+        toggleSavedPlace(beach, beach.commerce[Number(button.dataset.savePlace)]);
+      }));
     }
+
+    function placeCoordinates(beach, place) {
+      const seed = [...place.name].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      return {
+        lat: beach.lat + ((seed % 9) - 4) * .00065,
+        lon: beach.lon + (((seed * 7) % 9) - 4) * .00075
+      };
+    }
+
+    function persistSavedPlaces() {
+      localStorage.setItem('badamoa-saved-places', JSON.stringify(savedPlaces));
+      renderSavedPlaces();
+      renderLocalGuide(beaches[selectedIndex]);
+    }
+
+    function toggleSavedPlace(beach, place) {
+      const id = `${beach.name}-${place.name}`;
+      const existing = savedPlaces.findIndex(item => item.id === id);
+      if (existing >= 0) {
+        savedPlaces.splice(existing, 1);
+      } else {
+        const coords = placeCoordinates(beach, place);
+        savedPlaces.push({ id, beach: beach.name, name: place.name, category: place.category, detail: place.detail, icon: place.icon, query: place.query, ...coords });
+      }
+      persistSavedPlaces();
+    }
+
+    function renderSavedPlaces() {
+      const container = document.querySelector('#savedPlaceList');
+      if (!savedPlaces.length) {
+        container.innerHTML = '<div class="trip-empty">주변 추천 페이지에서 마음에 드는 장소의<br><b>♡ 저장</b> 버튼을 눌러주세요.</div>';
+        return;
+      }
+      container.innerHTML = savedPlaces.map(place => `<article class="saved-place">
+        <span class="saved-place-icon" aria-hidden="true">${place.icon}</span>
+        <span class="saved-place-copy"><strong>${place.name}</strong><small>${place.beach} · ${place.category}</small></span>
+        <button class="saved-place-remove" type="button" data-remove-place="${place.id}" aria-label="${place.name} 저장 삭제">✕</button>
+      </article>`).join('');
+      container.querySelectorAll('[data-remove-place]').forEach(button => button.addEventListener('click', () => {
+        savedPlaces = savedPlaces.filter(place => place.id !== button.dataset.removePlace);
+        persistSavedPlaces();
+      }));
+    }
+
+    function generateTripPlan() {
+      const summary = document.querySelector('#tripSummary');
+      const planList = document.querySelector('#tripPlanList');
+      if (savedPlaces.length < 2) {
+        summary.textContent = '장소를 두 곳 이상 저장해 주세요.';
+        planList.innerHTML = '';
+        document.querySelector('#tripMap').style.display = 'none';
+        return;
+      }
+      const duration = Number(document.querySelector('#tripDuration').value);
+      const mode = document.querySelector('#tripMode').value;
+      const maxStops = duration === 3 ? 3 : duration === 6 ? 5 : 7;
+      const remaining = savedPlaces.map(place => ({ ...place }));
+      const route = [];
+      let cursor = { lat: beaches[selectedIndex].lat, lon: beaches[selectedIndex].lon };
+      while (remaining.length && route.length < maxStops) {
+        remaining.sort((a,b) => distanceKm(cursor.lat,cursor.lon,a.lat,a.lon) - distanceKm(cursor.lat,cursor.lon,b.lat,b.lon));
+        const next = remaining.shift();
+        route.push(next);
+        cursor = next;
+      }
+      const interval = mode === 'walk' ? 80 : mode === 'car' ? 55 : 65;
+      const startMinutes = Math.max(9 * 60, new Date().getHours() * 60);
+      const modeLabel = { walk: '도보 중심', transit: '대중교통', car: '자동차' }[mode];
+      summary.textContent = `${beaches[selectedIndex].name}에서 출발하는 ${duration}시간 · ${modeLabel} 일정이에요.`;
+      planList.innerHTML = route.map((place,index) => {
+        const minutes = startMinutes + index * interval;
+        const time = `${String(Math.floor(minutes / 60) % 24).padStart(2,'0')}:${String(minutes % 60).padStart(2,'0')}`;
+        return `<article class="trip-stop"><time class="trip-time">${time}</time><span><strong>${index + 1}. ${place.name}</strong><small>${place.beach} · ${place.category}</small></span></article>`;
+      }).join('');
+      localStorage.setItem('badamoa-trip-plan', JSON.stringify({ route, duration, mode, savedAt: Date.now() }));
+      renderTripMap(route);
+    }
+
+    function renderTripMap(route) {
+      const mapElement = document.querySelector('#tripMap');
+      mapElement.style.display = 'block';
+      if (!tripMap) {
+        tripMap = L.map('tripMap', { zoomControl: false });
+        L.control.zoom({ position: 'bottomright' }).addTo(tripMap);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(tripMap);
+      }
+      if (tripRouteLayer) tripMap.removeLayer(tripRouteLayer);
+      const points = route.map(place => [place.lat,place.lon]);
+      const layers = [L.polyline(points, { color: '#68b8e8', weight: 4, opacity: .8 })];
+      route.forEach((place,index) => layers.push(
+        L.marker([place.lat,place.lon], { icon: L.divIcon({ className: 'facility-map-icon', html: String(index + 1), iconSize: [30,30], iconAnchor: [15,15] }) })
+          .bindTooltip(`${place.name} · ${place.beach}`)
+      ));
+      tripRouteLayer = L.layerGroup(layers).addTo(tripMap);
+      tripMap.fitBounds(points, { padding: [30,30], maxZoom: 14 });
+      setTimeout(() => tripMap.invalidateSize(), 80);
+    }
+
+    document.querySelector('#tripGenerate').addEventListener('click', generateTripPlan);
+    renderSavedPlaces();
 
     function renderTransport(beach) {
       document.querySelector('#transportList').innerHTML = beach.transport.map(item => {
@@ -1326,6 +1489,10 @@
       document.querySelectorAll('.nav-item').forEach(nav => nav.classList.toggle('is-active', nav.dataset.page === pageId));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (pageId === 'mapPage') setTimeout(initBeachMap, 80);
+      if (pageId === 'tripPage') setTimeout(() => {
+        renderSavedPlaces();
+        tripMap?.invalidateSize();
+      }, 80);
     }
 
     document.querySelector('#brandHome').addEventListener('click', () => {
