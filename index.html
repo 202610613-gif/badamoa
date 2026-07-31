@@ -1126,7 +1126,7 @@
       }).addTo(jellyMap);
       jellyLayer = L.layerGroup(jellyDemoZones.map(zone =>
         L.circle([zone.lat, zone.lon], { radius: zone.radius, color: '#e6788b', weight: 2, fillColor: '#f5a2b0', fillOpacity: .2 })
-          .bindTooltip(`🪼 ${zone.beach}해수욕장 · 예상 구역`, { permanent: true, direction: 'center', className: 'beach-name-label' })
+          .bindTooltip(`${zone.beach}해수욕장`, { permanent: true, direction: 'center', className: 'beach-name-label' })
       )).addTo(jellyMap);
       jellyMap.fitBounds(jellyDemoZones.map(zone => [zone.lat,zone.lon]), { padding: [28,28] });
 
