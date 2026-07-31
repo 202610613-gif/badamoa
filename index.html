@@ -420,6 +420,16 @@
     #beachMap { height: min(58svh, 480px); min-height: 390px; border-radius: 18px; background: #dff1fc; overflow: hidden; }
     .map-fallback { display: none; gap: 7px; margin-top: 10px; }
     .map-fallback button { width: 100%; padding: 12px; border: 0; border-radius: 11px; color: #397fae; background: #edf7fd; text-align: left; font: inherit; font-size: 13px; cursor: pointer; }
+    .map-data-panel { margin-top: 12px; padding: 15px; border-radius: 18px; background: #f3f9fd; }
+    .map-data-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .map-data-head strong { color: #315f7e; font-size: 16px; }
+    .demo-badge { flex: 0 0 auto; padding: 5px 8px; border-radius: 999px; color: #397fae; background: #dff1fc; font-size: 10px; }
+    .map-data-panel p { margin: 6px 0 12px; color: #7892a9; font-size: 11px; line-height: 1.55; }
+    .map-filter-list { display: flex; flex-wrap: wrap; gap: 7px; }
+    .map-filter { min-height: 38px; padding: 0 11px; border: 1px solid #cbe6f5; border-radius: 12px; color: #55778e; background: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+    .map-filter[aria-pressed="true"] { color: #fff; border-color: #68b8e8; background: #68b8e8; }
+    .map-filter.jelly-filter[aria-pressed="true"] { border-color: #ef8fa0; background: #ef8fa0; }
+    .facility-map-icon { display: grid; place-items: center; width: 30px !important; height: 30px !important; border: 2px solid #fff; border-radius: 10px; background: #397fae; box-shadow: 0 5px 14px rgba(49,80,108,.25); font-size: 16px; }
     .leaflet-container { font-family: "Jua", sans-serif; }
     .leaflet-tooltip { border: 0; border-radius: 9px; color: #397fae; box-shadow: 0 4px 14px rgba(49,80,108,.15); font-size: 10px; font-weight: 900; }
     .leaflet-tooltip.beach-name-label { padding: 5px 8px; background: rgba(255,255,255,.94); white-space: nowrap; }
@@ -661,6 +671,21 @@
         <h2 class="map-title" id="mapTitle">부산 해수욕장 한눈에 보기</h2>
         <div id="beachMap" aria-label="부산 7개 해수욕장 지도"></div>
         <div class="map-fallback" id="mapFallback"></div>
+        <div class="map-data-panel">
+          <div class="map-data-head"><strong>🪼 해파리 주의 예상 구역</strong><span class="demo-badge">시연용 예상</span></div>
+          <p>계절과 수온을 바탕으로 표현한 예시 구역이며 실제 출현 신고나 입수 통제 정보가 아닙니다.</p>
+          <div class="map-filter-list"><button class="map-filter jelly-filter" id="jellyLayerToggle" type="button" aria-pressed="true">🪼 예상 구역 표시</button></div>
+        </div>
+        <div class="map-data-panel">
+          <div class="map-data-head"><strong>해변 편의시설</strong><span class="demo-badge">예시 데이터</span></div>
+          <p>버튼을 누르면 시설 종류별 예시 위치를 지도에서 켜거나 끌 수 있어요.</p>
+          <div class="map-filter-list" id="facilityFilters">
+            <button class="map-filter" type="button" data-facility-type="화장실" aria-pressed="true">🚻 화장실</button>
+            <button class="map-filter" type="button" data-facility-type="탈의실" aria-pressed="true">👕 탈의실</button>
+            <button class="map-filter" type="button" data-facility-type="샤워실" aria-pressed="true">🚿 샤워실</button>
+            <button class="map-filter" type="button" data-facility-type="물품보관소" aria-pressed="true">🧳 물품보관소</button>
+          </div>
+        </div>
       </div>
       <a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a>
     </section>
@@ -878,6 +903,23 @@
       '임랑': { jelly: 1, jellyNote: '비교적 개방된 해안이지만 여름철 목격 시 즉시 입수를 멈추고 안전요원에게 알려주세요.', species: [['🦀','모래게','백사장'],['🐚','고둥류','북쪽 암반'],['🐟','망둥어','임랑천 하구'],['🌲','해송','해변 송림']], route: '임랑천 하구 → 임랑 백사장 → 해송 숲 → 월내항 방향 해안길', duration: '약 90분' }
     };
 
+    // 아래 좌표는 지도 기능을 시연하기 위한 예시이며 실제 시설·해파리 신고 데이터가 아닙니다.
+    const jellyDemoZones = [
+      { name: '해운대 앞바다 예상 구역', lat: 35.157, lon: 129.164, radius: 850 },
+      { name: '광안리 앞바다 예상 구역', lat: 35.151, lon: 129.121, radius: 700 },
+      { name: '송정 앞바다 예상 구역', lat: 35.178, lon: 129.205, radius: 700 }
+    ];
+    const facilityDemoData = [
+      ['해운대 해변 화장실','화장실','🚻',35.1590,129.1608], ['해운대 관광안내소 탈의실','탈의실','👕',35.1581,129.1600],
+      ['해운대 해변 샤워실','샤워실','🚿',35.1585,129.1617], ['해운대 물품보관소','물품보관소','🧳',35.1602,129.1581],
+      ['광안리 해변 화장실','화장실','🚻',35.1532,129.1191], ['광안리 해변 샤워실','샤워실','🚿',35.1538,129.1180],
+      ['송정 해변 탈의실','탈의실','👕',35.1787,129.1995], ['송정 물품보관소','물품보관소','🧳',35.1792,129.2004],
+      ['송도 해변 화장실','화장실','🚻',35.0762,129.0169], ['송도 해변 샤워실','샤워실','🚿',35.0757,129.0178],
+      ['다대포 해변 화장실','화장실','🚻',35.0470,128.9650], ['다대포 물품보관소','물품보관소','🧳',35.0461,128.9662],
+      ['일광 해변 탈의실','탈의실','👕',35.2592,129.2333], ['일광 해변 샤워실','샤워실','🚿',35.2586,129.2341],
+      ['임랑 해변 화장실','화장실','🚻',35.3186,129.2643], ['임랑 해변 샤워실','샤워실','🚿',35.3193,129.2635]
+    ].map(([name,type,icon,lat,lon]) => ({ name,type,icon,lat,lon }));
+
     const list = document.querySelector('#beachList');
     const card = document.querySelector('#statusCard');
     const aiPanel = document.querySelector('#aiPanel');
@@ -886,6 +928,8 @@
     const liveCache = new Map();
     let beachMap = null;
     const beachMarkers = [];
+    let jellyLayer = null;
+    const facilityLayers = new Map();
 
     beaches.forEach((beach, index) => {
       const button = document.createElement('button');
@@ -1068,8 +1112,35 @@
           });
         beachMarkers.push(marker);
       });
+      jellyLayer = L.layerGroup(jellyDemoZones.map(zone =>
+        L.circle([zone.lat, zone.lon], { radius: zone.radius, color: '#e6788b', weight: 2, fillColor: '#f5a2b0', fillOpacity: .2 })
+          .bindTooltip(`🪼 ${zone.name}<br>시연용 예상 구역`)
+      )).addTo(beachMap);
+      ['화장실','탈의실','샤워실','물품보관소'].forEach(type => {
+        const markers = facilityDemoData.filter(item => item.type === type).map(item =>
+          L.marker([item.lat,item.lon], {
+            icon: L.divIcon({ className: 'facility-map-icon', html: item.icon, iconSize: [30,30], iconAnchor: [15,15] })
+          }).bindTooltip(`${item.name}<br>${item.type} · 예시 데이터`)
+        );
+        facilityLayers.set(type, L.layerGroup(markers).addTo(beachMap));
+      });
       beachMap.fitBounds(beaches.map(beach => [beach.lat, beach.lon]), { padding: [22, 22] });
     }
+
+    document.querySelector('#jellyLayerToggle').addEventListener('click', event => {
+      const active = event.currentTarget.getAttribute('aria-pressed') === 'true';
+      event.currentTarget.setAttribute('aria-pressed', String(!active));
+      if (!beachMap || !jellyLayer) return;
+      active ? beachMap.removeLayer(jellyLayer) : jellyLayer.addTo(beachMap);
+    });
+    document.querySelectorAll('[data-facility-type]').forEach(button => button.addEventListener('click', () => {
+      const type = button.dataset.facilityType;
+      const active = button.getAttribute('aria-pressed') === 'true';
+      button.setAttribute('aria-pressed', String(!active));
+      const layer = facilityLayers.get(type);
+      if (!beachMap || !layer) return;
+      active ? beachMap.removeLayer(layer) : layer.addTo(beachMap);
+    }));
 
     const weatherIcons = code => code === 0 ? '☀️' : code < 4 ? '🌤️' : code < 58 ? '☁️' : code < 82 ? '🌧️' : '⛈️';
     const windLabel = degree => ['북','북동','동','남동','남','남서','서','북서'][Math.round(degree / 45) % 8];
