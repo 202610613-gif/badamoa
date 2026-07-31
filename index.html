@@ -648,7 +648,6 @@
     <section class="intro" aria-labelledby="main-title">
       <div class="eyebrow">BUSAN BEACH NOW</div>
       <h1 id="main-title"><span class="home-user-greeting" id="homeUserGreeting"></span>오늘,<br>어느 <em>바다</em>로 갈까요?</h1>
-      <p>부산의 일곱 바다를 고르고<br>현재 시각 기반 AI 혼잡도를 확인하세요.</p>
     </section>
 
     <section aria-labelledby="beach-picker-title">
@@ -1222,20 +1221,29 @@
         route.push(next);
         cursor = next;
       }
-      const baseInterval = mode === 'walk' ? 80 : mode === 'car' ? 55 : 65;
-      const interval = baseInterval + (pace === 'relaxed' ? 25 : pace === 'packed' ? -15 : 0);
       const startMinutes = startHour * 60 + startMinute;
       const modeLabel = { walk: '도보 중심', transit: '대중교통', car: '자동차' }[mode];
       const paceLabel = { relaxed: '여유롭게', balanced: '적당하게', packed: '알차게' }[pace];
       const themeLabel = { all: '골고루', food: '맛집·카페', nature: '바다·산책', transport: '교통 편의' }[theme];
       summary.textContent = `${beaches[startBeachIndex].name}에서 ${document.querySelector('#tripStartTime').value} 출발 · ${duration}시간 · ${modeLabel} · ${paceLabel} · ${themeLabel} 일정이에요.`;
-      planList.innerHTML = route.map((place,index) => {
-        const minutes = startMinutes + index * interval;
-        const time = `${String(Math.floor(minutes / 60) % 24).padStart(2,'0')}:${String(minutes % 60).padStart(2,'0')}`;
-        return `<article class="trip-stop"><time class="trip-time">${time}</time><span><strong>${index + 1}. ${place.name}</strong><small>${place.beach} · ${place.category}</small></span></article>`;
-      }).join('');
-      localStorage.setItem('badamoa-trip-plan', JSON.stringify({ route, duration, mode, pace, theme, startBeachIndex, startTime: document.querySelector('#tripStartTime').value, savedAt: Date.now() }));
-      renderTripMap(route);
+      const speed = { walk: 4, transit: 18, car: 28 }[mode];
+      const stayMinutes = { relaxed: 70, balanced: 50, packed: 35 }[pace];
+      let scheduleCursor = { lat: beaches[startBeachIndex].lat, lon: beaches[startBeachIndex].lon };
+      let scheduleMinutes = startMinutes;
+      const scheduledRoute = route.map((place,index) => {
+        const km = distanceKm(scheduleCursor.lat,scheduleCursor.lon,place.lat,place.lon);
+        const travelMinutes = Math.max(5, Math.ceil((km / speed * 60) / 5) * 5);
+        scheduleMinutes += travelMinutes;
+        const time = `${String(Math.floor(scheduleMinutes / 60) % 24).padStart(2,'0')}:${String(scheduleMinutes % 60).padStart(2,'0')}`;
+        scheduleCursor = place;
+        scheduleMinutes += stayMinutes;
+        return { ...place, time, travelMinutes, order: index + 1 };
+      });
+      planList.innerHTML = scheduledRoute.map(place =>
+        `<article class="trip-stop"><time class="trip-time">${place.time}</time><span><strong>${place.order}. ${place.name}</strong><small>이동 약 ${place.travelMinutes}분 · ${place.beach} · ${place.category}</small></span></article>`
+      ).join('');
+      localStorage.setItem('badamoa-trip-plan', JSON.stringify({ route: scheduledRoute, duration, mode, pace, theme, startBeachIndex, startTime: document.querySelector('#tripStartTime').value, savedAt: Date.now() }));
+      renderTripMap(scheduledRoute);
     }
 
     function renderTripMap(route) {
@@ -1251,7 +1259,7 @@
       const layers = [L.polyline(points, { color: '#68b8e8', weight: 4, opacity: .8 })];
       route.forEach((place,index) => layers.push(
         L.marker([place.lat,place.lon], { icon: L.divIcon({ className: 'facility-map-icon', html: String(index + 1), iconSize: [30,30], iconAnchor: [15,15] }) })
-          .bindTooltip(`${place.name} · ${place.beach}`)
+          .bindTooltip(`${place.time} · ${place.name}`, { permanent: true, direction: 'top', offset: [0,-8], className: 'beach-name-label' })
       ));
       tripRouteLayer = L.layerGroup(layers).addTo(tripMap);
       tripMap.fitBounds(points, { padding: [30,30], maxZoom: 14 });
