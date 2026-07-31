@@ -1219,7 +1219,9 @@
     const launchScreen = document.querySelector('#launchScreen');
     const launchClose = document.querySelector('#launchClose');
     const launchSkipDay = document.querySelector('#launchSkipDay');
-    const hideNoticeUntil = Number(localStorage.getItem('badamoa-notice-hide-until') || 0);
+    const forceNotice = new URLSearchParams(location.search).get('notice') === 'show';
+    if (forceNotice) localStorage.removeItem('badamoa-notice-hide-until');
+    const hideNoticeUntil = forceNotice ? 0 : Number(localStorage.getItem('badamoa-notice-hide-until') || 0);
     const closeLaunch = () => {
       launchScreen.classList.add('is-closed');
       document.body.classList.remove('launch-open');
