@@ -63,8 +63,8 @@
       padding: 0; border: 0;
       border-radius: 13px;
       color: #fff;
-      background: linear-gradient(145deg, #83c9f2, #5eafe0);
-      box-shadow: 0 8px 20px rgba(75, 155, 207, .24);
+      background: linear-gradient(145deg, #178fc7, #0878b5);
+      box-shadow: 0 8px 20px rgba(8, 120, 181, .28);
       font-size: 20px; cursor: pointer;
     }
     .brand-mark:focus-visible { outline: 3px solid rgba(104,184,232,.3); outline-offset: 3px; }
@@ -447,10 +447,50 @@
     }
     @media (max-width: 390px) { .header-actions .updated { display: none; } }
 
+    body.launch-open { overflow: hidden; }
+    .launch-screen {
+      position: fixed; inset: 0; z-index: 1000;
+      display: grid; place-items: center; padding: 24px;
+      background: #fff; opacity: 1; visibility: visible;
+      transition: opacity .32s ease, visibility .32s ease;
+    }
+    .launch-screen.is-closed { opacity: 0; visibility: hidden; pointer-events: none; }
+    .launch-content { width: min(100%, 390px); text-align: center; }
+    .launch-logo {
+      display: grid; place-items: center;
+      width: 112px; height: 112px; margin: 0 auto;
+      border-radius: 30px; color: #fff;
+      background: linear-gradient(145deg, #178fc7, #0878b5);
+      box-shadow: 0 20px 45px rgba(8, 120, 181, .25);
+      font-size: 58px;
+    }
+    .launch-name { margin: 20px 0 8px; color: #178fc7; font-size: 18px; }
+    .launch-title { margin: 0; color: #31506c; font-size: 33px; }
+    .launch-description { margin: 26px 0 8px; color: #516f84; font-size: 20px; line-height: 1.6; }
+    .launch-description strong { color: #178fc7; }
+    .launch-subtext { margin: 0 auto 30px; max-width: 330px; color: #7892a9; font-size: 14px; line-height: 1.7; }
+    .launch-start {
+      width: 100%; min-height: 56px; border: 0; border-radius: 17px;
+      color: #fff; background: linear-gradient(135deg, #178fc7, #53b9d4);
+      box-shadow: 0 13px 30px rgba(8, 120, 181, .22);
+      font-size: 17px; cursor: pointer;
+    }
+    .launch-start:focus-visible { outline: 4px solid rgba(23,143,199,.25); outline-offset: 4px; }
+
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
   </style>
 </head>
 <body>
+  <div class="launch-screen" id="launchScreen" role="dialog" aria-modal="true" aria-labelledby="launchTitle" aria-describedby="launchDescription">
+    <div class="launch-content">
+      <div class="launch-logo" aria-hidden="true">🏖️</div>
+      <p class="launch-name">바다모아</p>
+      <h1 class="launch-title" id="launchTitle">부산 바다를 한눈에</h1>
+      <p class="launch-description" id="launchDescription">이 웹의 데이터는 <strong>시연용 예상 데이터</strong>입니다.</p>
+      <p class="launch-subtext">실제 방문과 입수 전에는 현장 안전요원과 공식 안내를 확인해 주세요.</p>
+      <button class="launch-start" id="launchStart" type="button">확인하고 시작하기</button>
+    </div>
+  </div>
   <main class="app" id="appTop">
     <header>
       <div class="brand"><button class="brand-mark" id="brandHome" type="button" aria-label="바다모아 홈으로 이동">🏖️</button><span class="brand-name">바다모아</span></div>
@@ -1131,6 +1171,22 @@
       selectBeach(recommendedIndex);
       showPage('homePage');
       setTimeout(() => document.querySelectorAll('.beach-btn')[recommendedIndex].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }), 50);
+    });
+
+    const launchScreen = document.querySelector('#launchScreen');
+    const launchStart = document.querySelector('#launchStart');
+    if (sessionStorage.getItem('badamoa-launch-notice') === 'seen') {
+      launchScreen.classList.add('is-closed');
+      launchScreen.setAttribute('aria-hidden', 'true');
+    } else {
+      document.body.classList.add('launch-open');
+      requestAnimationFrame(() => launchStart.focus());
+    }
+    launchStart.addEventListener('click', () => {
+      sessionStorage.setItem('badamoa-launch-notice', 'seen');
+      launchScreen.classList.add('is-closed');
+      document.body.classList.remove('launch-open');
+      setTimeout(() => launchScreen.setAttribute('aria-hidden', 'true'), 340);
     });
 
     selectBeach(0);
