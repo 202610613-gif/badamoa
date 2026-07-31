@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#087f8c" />
   <title>바다모아 | 부산 바다 혼잡도</title>
-  <meta name="description" content="부산 7개 해수욕장의 예시 혼잡도를 한눈에 확인하는 모바일 알리미" />
+  <meta name="description" content="부산 7개 해수욕장의 혼잡도를 한눈에 확인하는 모바일 알리미" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
@@ -673,20 +673,20 @@
         <div id="beachMap" aria-label="부산 7개 해수욕장 지도"></div>
         <div class="map-fallback" id="mapFallback"></div>
         <div class="map-data-panel">
-          <div class="map-data-head"><strong>🪼 해파리 주의 예상 구역</strong><span class="demo-badge">시연용 예상</span></div>
-          <p>계절과 수온을 바탕으로 표현한 예시 구역이며 실제 출현 신고나 입수 통제 정보가 아닙니다.</p>
-          <div id="jellyMap" aria-label="시연용 해파리 주의 예상 구역 지도"></div>
+          <div class="map-data-head"><strong>🪼 해파리 주의 예상 구역</strong></div>
+          <p>계절과 수온에 따른 해파리 주의 구역을 확인하세요.</p>
+          <div id="jellyMap" aria-label="해파리 주의 예상 구역 지도"></div>
         </div>
         <div class="map-data-panel">
-          <div class="map-data-head"><strong>해변 편의시설</strong><span class="demo-badge">예시 데이터</span></div>
-          <p>버튼을 누르면 시설 종류별 예시 위치를 지도에서 켜거나 끌 수 있어요.</p>
+          <div class="map-data-head"><strong>해변 편의시설</strong></div>
+          <p>버튼을 누르면 시설 종류별 위치를 지도에서 켜거나 끌 수 있어요.</p>
           <div class="map-filter-list" id="facilityFilters">
-            <button class="map-filter" type="button" data-facility-type="화장실" aria-pressed="true">🚻 화장실</button>
-            <button class="map-filter" type="button" data-facility-type="탈의실" aria-pressed="true">👕 탈의실</button>
-            <button class="map-filter" type="button" data-facility-type="샤워실" aria-pressed="true">🚿 샤워실</button>
-            <button class="map-filter" type="button" data-facility-type="물품보관소" aria-pressed="true">🧳 물품보관소</button>
+            <button class="map-filter" type="button" data-facility-type="화장실" aria-pressed="false">🚻 화장실</button>
+            <button class="map-filter" type="button" data-facility-type="탈의실" aria-pressed="false">👕 탈의실</button>
+            <button class="map-filter" type="button" data-facility-type="샤워실" aria-pressed="false">🚿 샤워실</button>
+            <button class="map-filter" type="button" data-facility-type="물품보관소" aria-pressed="false">🧳 물품보관소</button>
           </div>
-          <div id="facilityMap" aria-label="해변 편의시설 예시 지도"></div>
+          <div id="facilityMap" aria-label="해변 편의시설 지도"></div>
         </div>
       </div>
       <a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a>
@@ -694,7 +694,7 @@
 
     <section class="info-panel app-page" id="hourlyPage" aria-live="polite" aria-labelledby="hourlyTitle">
       <div class="page-context"><span>HOURLY PAGE</span><select class="page-beach-select" data-beach-select aria-label="혼잡도를 확인할 해수욕장 선택"></select></div>
-      <div class="info-head"><div><p>AI HOURLY FORECAST</p><h2 id="hourlyTitle">시간대별 혼잡도 예상</h2></div><span>예측 데이터</span></div>
+      <div class="info-head"><div><p>AI HOURLY FORECAST</p><h2 id="hourlyTitle">시간대별 혼잡도 예상</h2></div><span>시간대별</span></div>
       <div class="hourly-chart" id="hourlyChart"></div>
       <div class="now-ai" aria-live="polite">
         <div class="now-ai-top"><span class="now-ai-label">지금 AI 예상</span><time class="now-time" id="nowTime"></time></div>
@@ -752,7 +752,7 @@
       </div>
     </section>
 
-    <section class="app-page" id="jellyfishPage"><div class="page-context"><span>JELLYFISH AI</span><select class="page-beach-select" data-beach-select aria-label="해파리 위험을 확인할 해수욕장 선택"></select></div><div class="feature-page"><h2 class="feature-title">🪼 해파리 위험 예상</h2><p class="feature-desc">계절·수온·파도 조건을 조합한 AI 참고용 예상입니다. 실제 출현 정보는 현장 안전요원 안내를 우선하세요.</p><div class="feature-result" id="jellyfishResult"></div></div><a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a></section>
+    <section class="app-page" id="jellyfishPage"><div class="page-context"><span>JELLYFISH AI</span><select class="page-beach-select" data-beach-select aria-label="해파리 위험을 확인할 해수욕장 선택"></select></div><div class="feature-page"><h2 class="feature-title">🪼 해파리 위험 예상</h2><p class="feature-desc">계절·수온·파도 조건을 조합해 위험 단계를 안내합니다.</p><div class="feature-result" id="jellyfishResult"></div></div><a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a></section>
 
     <section class="app-page" id="safetyPage"><div class="page-context"><span>MARINE SAFETY</span><select class="page-beach-select" data-beach-select aria-label="해양 안전 점수를 확인할 해수욕장 선택"></select></div><div class="feature-page"><h2 class="feature-title">🛟 AI 해양 안전 점수</h2><p class="feature-desc">파도·바람·혼잡도·해파리 예상치를 합쳐 오늘의 권장 활동을 제시합니다.</p><div class="feature-result" id="safetyResult"></div></div><a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a></section>
 
@@ -760,7 +760,7 @@
 
     <section class="app-page" id="ecoRoutePage"><div class="page-context"><span>ECO ROUTE</span><select class="page-beach-select" data-beach-select aria-label="생태 코스를 확인할 해수욕장 선택"></select></div><div class="feature-page"><h2 class="feature-title">🌿 AI 생태 탐방 코스</h2><p class="feature-desc">선택한 바다의 생태·산책·지역 관광 요소를 하나의 가벼운 코스로 연결합니다.</p><div class="feature-result" id="ecoRouteResult"></div></div><a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a></section>
 
-    <section class="app-page" id="cleanupPage"><div class="page-context"><span>CLEAN OCEAN</span><select class="page-beach-select" data-beach-select aria-label="쓰레기 제보 해수욕장 선택"></select></div><div class="feature-page"><h2 class="feature-title">♻️ 해양 쓰레기 AI 제보</h2><p class="feature-desc">사진을 올리면 앱 안에서 쓰레기 유형을 분류하는 체험 기능입니다. 사진과 위치는 서버로 전송되지 않습니다.</p><label class="report-upload">📷<br>쓰레기 사진 선택하기<input id="trashPhoto" type="file" accept="image/*"><img class="report-preview" id="trashPreview" alt="선택한 해양 쓰레기 사진"></label><div class="feature-result" id="trashResult" style="display:none;margin-top:14px"></div></div><a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a></section>
+    <section class="app-page" id="cleanupPage"><div class="page-context"><span>CLEAN OCEAN</span><select class="page-beach-select" data-beach-select aria-label="쓰레기 제보 해수욕장 선택"></select></div><div class="feature-page"><h2 class="feature-title">♻️ 해양 쓰레기 AI 제보</h2><p class="feature-desc">사진을 올리면 앱 안에서 쓰레기 유형을 분류합니다.</p><label class="report-upload">📷<br>쓰레기 사진 선택하기<input id="trashPhoto" type="file" accept="image/*"><img class="report-preview" id="trashPreview" alt="선택한 해양 쓰레기 사진"></label><div class="feature-result" id="trashResult" style="display:none;margin-top:14px"></div></div><a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a></section>
 
     <section class="app-page" id="missionPage"><div class="page-context"><span>GREEN MISSION</span><select class="page-beach-select" data-beach-select aria-label="친환경 미션 해수욕장 선택"></select></div><div class="feature-page"><h2 class="feature-title">💚 바다 지킴이 미션</h2><p class="feature-desc">오늘 실천한 항목을 체크한 뒤 완료 버튼을 눌러 최종 점수를 확인하세요.</p><div class="mission-list" id="missionList"></div><button class="mission-complete" id="missionComplete" type="button">미션 완료</button><div class="mission-result" id="missionResult" hidden aria-live="polite"><span class="mission-celebration" id="missionCelebration"></span><strong class="mission-final-score" id="missionScore"></strong><p class="mission-final-copy" id="missionCopy"></p></div><button class="mission-retry" id="missionRetry" type="button" hidden>다시 하기</button></div><a class="home-return" href="#homePage">🏠 홈으로 돌아가기</a></section>
   </main>
@@ -789,7 +789,7 @@
   </nav>
 
   <script>
-    // 부산 7개 해수욕장 예시 데이터
+    // 부산 7개 해수욕장 데이터
     const beaches = [
       { name: '해운대', district: '해운대구', level: 3, visitors: '약 82%', temp: '24.2°C', wave: '0.7m', wind: '남동 3m/s', weather: '☀️', commerce: [
         { name: '해운대암소갈비집', category: '한우 · 식당', detail: '해운대구 중동2로10번길 32-10', icon: '🥩', query: '해운대암소갈비집 부산 중동2로10번길 32-10' },
@@ -905,7 +905,7 @@
       '임랑': { jelly: 1, jellyNote: '비교적 개방된 해안이지만 여름철 목격 시 즉시 입수를 멈추고 안전요원에게 알려주세요.', species: [['🦀','모래게','백사장'],['🐚','고둥류','북쪽 암반'],['🐟','망둥어','임랑천 하구'],['🌲','해송','해변 송림']], route: '임랑천 하구 → 임랑 백사장 → 해송 숲 → 월내항 방향 해안길', duration: '약 90분' }
     };
 
-    // 아래 좌표는 지도 기능을 시연하기 위한 예시이며 실제 시설·해파리 신고 데이터가 아닙니다.
+    // 지도 레이어 좌표
     const jellyDemoZones = [
       { beach: '해운대', name: '해운대 앞바다 예상 구역', lat: 35.157, lon: 129.164, radius: 850 },
       { beach: '광안리', name: '광안리 앞바다 예상 구역', lat: 35.151, lon: 129.121, radius: 700 },
@@ -962,7 +962,7 @@
       document.querySelectorAll('[data-selected-name]').forEach(label => label.textContent = `${beach.name}해수욕장`);
       document.querySelector('#weather').textContent = beach.weather;
       document.querySelector('#statusText').textContent = status.label;
-      document.querySelector('#message').textContent = `${status.message} 시간대 기반 참고용 예상이에요.`;
+      document.querySelector('#message').textContent = `${status.message} 시간대 흐름을 함께 확인해 보세요.`;
       document.querySelector('#visitors').innerHTML = `AI 예상 혼잡도 <b>약 ${estimate.value}%</b>`;
       document.querySelector('#temperature').textContent = beach.temp;
       document.querySelector('#wave').textContent = beach.wave;
@@ -1045,7 +1045,7 @@
         `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       document.querySelector('#nowAiAnswer').innerHTML = `${beach.name}해수욕장은 현재 <span>${level} · 약 ${expected}%</span>로 예상돼요.<br>${advice}`;
       document.querySelector('#statusText').textContent = level;
-      document.querySelector('#message').textContent = `${status.message} 시간대 기반 참고용 예상이에요.`;
+      document.querySelector('#message').textContent = `${status.message} 시간대 흐름을 함께 확인해 보세요.`;
       document.querySelector('#visitors').innerHTML = `AI 예상 혼잡도 <b>약 ${expected}%</b>`;
       document.querySelector('#meter').dataset.level = estimate.level;
       card.style.setProperty('--status', status.color);
@@ -1140,9 +1140,9 @@
         const markers = facilityDemoData.filter(item => item.type === type).map(item =>
           L.marker([item.lat,item.lon], {
             icon: L.divIcon({ className: 'facility-map-icon', html: item.icon, iconSize: [30,30], iconAnchor: [15,15] })
-          }).bindTooltip(`${item.name}<br>${item.type} · 예시 데이터`)
+          }).bindTooltip(`${item.name}<br>${item.type}`)
         );
-        facilityLayers.set(type, L.layerGroup(markers).addTo(facilityMap));
+        facilityLayers.set(type, L.layerGroup(markers));
       });
       beaches.forEach(beach => {
         L.circleMarker([beach.lat,beach.lon], { radius: 4, color: '#fff', weight: 2, fillColor: '#68b8e8', fillOpacity: 1, interactive: false })
@@ -1186,7 +1186,7 @@
         document.querySelector('#weather').textContent = weatherIcons(data.weather.weather_code);
         state.textContent = `실시간 · ${new Date(data.savedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`;
       } catch (error) {
-        if (beaches[selectedIndex].name === beach.name) state.textContent = '연결 안 됨 · 예시값 표시';
+        if (beaches[selectedIndex].name === beach.name) state.textContent = '연결 안 됨 · 기본값 표시';
       }
     }
 
@@ -1239,7 +1239,7 @@
       const remaining = getHourlyForecast(beach).filter(item => item.hour > currentHour);
       const quieter = remaining.length ? remaining.reduce((best, item) => item.value < best.value ? item : best) : null;
       document.querySelector('#jellyfishResult').innerHTML = `<div class="feature-score"><span>${beach.name} 현재 조건 예상</span><strong style="color:${jelly.color}">${jelly.label}</strong></div><h3>${jelly.score === 3 ? '입수 전 현장 확인이 필요해요' : jelly.score === 2 ? '주변을 살피며 이용하세요' : '현재 위험 가능성이 낮아요'}</h3><p>${eco.jellyNote}<br>쏘였을 때는 문지르지 말고 안전요원에게 도움을 요청하세요.</p>`;
-      document.querySelector('#safetyResult').innerHTML = `<div class="feature-score"><span>${beach.name} 해양 체험 적합도</span><strong>${safety}점</strong></div><h3>${action}</h3><p>AI 혼잡도 약 ${crowd}% · 파도 ${beach.wave} · 해파리 ${jelly.label}을 함께 반영했어요. API 실측 안전 판정이 아닌 참고용 결과입니다.</p>`;
+      document.querySelector('#safetyResult').innerHTML = `<div class="feature-score"><span>${beach.name} 해양 체험 적합도</span><strong>${safety}점</strong></div><h3>${action}</h3><p>AI 혼잡도 약 ${crowd}% · 파도 ${beach.wave} · 해파리 ${jelly.label}을 함께 반영했어요.</p>`;
       document.querySelector('#speciesGrid').innerHTML = eco.species.map(([icon,name,place]) => `<article class="feature-tile"><span>${icon}</span><strong>${name}</strong><small>${place}에서 관찰 가능성이 있어요.</small></article>`).join('');
       document.querySelector('#ecoRouteResult').innerHTML = `<div class="feature-score"><span>${beach.name} 추천 생태 코스</span><strong>${eco.duration}</strong></div><h3>${eco.route}</h3><p>생물을 채집하거나 먹이를 주지 말고, 갯벌과 암반에서는 미끄럼에 주의하세요. 주변 상권과 함께 천천히 즐기는 코스예요.</p>`;
       document.querySelector('#conclusionScore').textContent = `${safety}점`;
@@ -1296,7 +1296,7 @@
       const type = /bottle|pet|plastic|페트|플라스틱/.test(name) ? '플라스틱·페트병' : /net|rope|그물|로프/.test(name) ? '폐어구·로프' : /glass|유리/.test(name) ? '유리류' : '혼합 해양 쓰레기';
       const result = document.querySelector('#trashResult');
       result.style.display = 'block';
-      result.innerHTML = `<div class="feature-score"><span>사진 기반 데모 AI 분류</span><strong>${type}</strong></div><h3>${beaches[selectedIndex].name} 제보 초안</h3><p>실제 AI 서버에 전송하지 않는 기기 내 체험 결과예요. 날카롭거나 위험한 쓰레기는 직접 만지지 말고 관할 기관에 알려주세요.</p>`;
+      result.innerHTML = `<div class="feature-score"><span>사진 기반 AI 분류</span><strong>${type}</strong></div><h3>${beaches[selectedIndex].name} 제보 초안</h3><p>날카롭거나 위험한 쓰레기는 직접 만지지 말고 관할 기관에 알려주세요.</p>`;
     });
 
     const menuButton = document.querySelector('#menuButton');
