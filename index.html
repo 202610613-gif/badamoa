@@ -383,7 +383,9 @@
     .transport-copy p { margin: 0; color: #718da1; font-size: 13px; line-height: 1.55; }
     .transport-credit { display: block; margin-top: 5px; color: #91a6b5; font-size: 10px; line-height: 1.35; }
     .transport-links { display: flex; gap: 8px; margin-top: 13px; }
-    .transport-links a { flex: 1; min-height: 38px; display: grid; place-items: center; padding: 8px; border-radius: 11px; color: #397fae; background: #e1f2fc; text-align: center; text-decoration: none; font-size: 12px; font-weight: 400; }
+    .transport-links a, .transport-links button { flex: 1; min-height: 38px; display: grid; place-items: center; padding: 8px; border: 0; border-radius: 11px; color: #397fae; background: #e1f2fc; text-align: center; text-decoration: none; font: inherit; font-size: 12px; font-weight: 400; cursor: pointer; }
+    .transport-links button.is-saved { color: #fff; background: #68b8e8; }
+    .map-save-place { min-height: 34px; margin-top: 7px; padding: 0 10px; border: 0; border-radius: 9px; color: #fff; background: #68b8e8; font: inherit; font-size: 12px; cursor: pointer; }
 
     section[id] { scroll-margin-top: 18px; }
     .app-page { display: none; animation: pageIn .28s ease both; }
@@ -1146,12 +1148,16 @@
 
     function toggleSavedPlace(beach, place) {
       const id = `${beach.name}-${place.name}`;
-      const existing = savedPlaces.findIndex(item => item.id === id);
+      const coords = placeCoordinates(beach, place);
+      toggleSavedItem({ id, beach: beach.name, name: place.name, category: place.category, detail: place.detail, icon: place.icon, query: place.query, ...coords });
+    }
+
+    function toggleSavedItem(savedItem) {
+      const existing = savedPlaces.findIndex(item => item.id === savedItem.id);
       if (existing >= 0) {
         savedPlaces.splice(existing, 1);
       } else {
-        const coords = placeCoordinates(beach, place);
-        savedPlaces.push({ id, beach: beach.name, name: place.name, category: place.category, detail: place.detail, icon: place.icon, query: place.query, ...coords });
+        savedPlaces.push(savedItem);
       }
       persistSavedPlaces();
     }
@@ -1231,17 +1237,25 @@
     renderSavedPlaces();
 
     function renderTransport(beach) {
-      document.querySelector('#transportList').innerHTML = beach.transport.map(item => {
+      document.querySelector('#transportList').innerHTML = beach.transport.map((item, itemIndex) => {
         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.query)}`;
         const photo = transportPhotos[item.name];
+        const saveId = `transport-${beach.name}-${item.name}`;
+        const saved = savedPlaces.some(place => place.id === saveId);
         return `<article class="transport-card">
           <div class="transport-main">
             <a class="transport-photo" href="${mapUrl}" target="_blank" rel="noopener" aria-label="${item.name} 실제 사진과 거리뷰 보기">${photo ? `<img src="${photo.src}" alt="${photo.label}" loading="lazy">` : item.icon}</a>
             <div class="transport-copy"><small>${item.type}</small><strong>${item.name}</strong><p>${item.detail}</p>${photo ? `<span class="transport-credit">사진: ${photo.credit || photo.label}</span>` : ''}</div>
           </div>
-          <div class="transport-links"><a href="${mapUrl}" target="_blank" rel="noopener">실제 사진 · 거리뷰</a><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.query)}" target="_blank" rel="noopener">길찾기</a></div>
+          <div class="transport-links"><a href="${mapUrl}" target="_blank" rel="noopener">사진 · 지도</a><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.query)}" target="_blank" rel="noopener">길찾기</a><button class="${saved ? 'is-saved' : ''}" type="button" data-save-transport="${itemIndex}" aria-pressed="${saved}">${saved ? '저장됨' : '♡ 저장'}</button></div>
         </article>`;
       }).join('');
+      document.querySelectorAll('[data-save-transport]').forEach(button => button.addEventListener('click', () => {
+        const item = beach.transport[Number(button.dataset.saveTransport)];
+        const coords = placeCoordinates(beach, item);
+        toggleSavedItem({ id: `transport-${beach.name}-${item.name}`, beach: beach.name, name: item.name, category: item.type, detail: item.detail, icon: item.icon, query: item.query, ...coords });
+        renderTransport(beach);
+      }));
     }
 
     function initBeachMap() {
@@ -1276,11 +1290,19 @@
         const hitArea = L.circleMarker([beach.lat, beach.lon], { radius: 20, stroke: false, fill: true, fillOpacity: 0, className: 'beach-hit-area' })
           .addTo(beachMap)
           .bindTooltip(`${beach.name}해수욕장`, { permanent: true, direction: 'top', offset: [0, -8], className: 'beach-name-label' })
+          .bindPopup(`<strong>${beach.name}해수욕장</strong><br><button class="map-save-place" type="button" data-save-beach="${index}">${savedPlaces.some(place => place.id === `beach-${beach.name}`) ? '저장됨' : '♡ 여행에 저장'}</button>`)
           .on('click', () => {
             selectBeach(index);
-            showPage('transportPage');
           });
         beachMarkers.push(marker);
+      });
+      document.querySelector('#beachMap').addEventListener('click', event => {
+        const button = event.target.closest('[data-save-beach]');
+        if (!button) return;
+        const beach = beaches[Number(button.dataset.saveBeach)];
+        const id = `beach-${beach.name}`;
+        toggleSavedItem({ id, beach: beach.name, name: `${beach.name}해수욕장`, category: '해수욕장', detail: `${beach.district} 바다 여행`, icon: '🏖️', query: `부산 ${beach.name}해수욕장`, lat: beach.lat, lon: beach.lon });
+        button.textContent = savedPlaces.some(place => place.id === id) ? '저장됨' : '♡ 여행에 저장';
       });
       jellyMap = L.map('jellyMap', { zoomControl: false }).setView([35.16, 129.16], 11);
       L.control.zoom({ position: 'bottomright' }).addTo(jellyMap);
