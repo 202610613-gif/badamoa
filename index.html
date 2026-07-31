@@ -531,7 +531,7 @@
     .launch-screen {
       position: fixed; inset: 0; z-index: 1000;
       display: grid; place-items: center; padding: 24px;
-      background: #087fbd; opacity: 1; visibility: visible;
+      background: linear-gradient(145deg, #178fc7, #0878b5); opacity: 1; visibility: visible;
       transition: opacity .32s ease, visibility .32s ease;
     }
     .launch-screen.is-closed { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -543,14 +543,13 @@
     }
     .launch-splash-logo {
       display: grid; place-items: center;
-      width: 126px; height: 126px;
-      border-radius: 34px;
+      width: 150px; height: 150px;
       color: #fff;
-      background: rgba(255,255,255,.16);
-      box-shadow: 0 24px 60px rgba(0,50,90,.24);
-      font-size: 66px;
+      background: transparent;
+      box-shadow: none;
+      font-size: 78px;
       transform: scale(.58);
-      animation: launchLogoGrow 1.25s cubic-bezier(.18,.82,.3,1) forwards;
+      animation: launchLogoGrow 1.45s cubic-bezier(.18,.82,.3,1) forwards;
     }
     @keyframes launchLogoGrow {
       0% { opacity: 0; transform: scale(.55); }
@@ -1917,7 +1916,7 @@
         launchScreen.classList.add('show-notice');
         setTimeout(() => launchClose.focus(), 500);
       }
-    }, 1500);
+    }, 1800);
     launchClose.addEventListener('click', closeLaunch);
     launchSkipDay.addEventListener('change', () => {
       if (!launchSkipDay.checked) return;
