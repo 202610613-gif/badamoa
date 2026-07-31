@@ -411,6 +411,8 @@
     .nav-icon { display: grid; place-items: center; width: 36px; height: 34px; border-radius: 11px; font-family: Arial, sans-serif; font-size: 24px; line-height: 1; }
     .nav-item.is-active { color: #397fae; background: #e8f5fd; }
     .nav-item.is-active .nav-icon { background: #cfeeff; transform: translateY(-1px); }
+    .nav-item[data-page="localPage"].is-active .nav-icon { color: #178fc7; font-size: 0; }
+    .nav-item[data-page="localPage"].is-active .nav-icon::before { content: "♥"; font-size: 24px; }
     .nav-item.home-tab { color: #397fae; }
     .nav-item.home-tab .nav-icon { width: 52px; height: 52px; margin-top: -23px; border: 4px solid #fff; border-radius: 19px; color: #fff; background: #68b8e8; box-shadow: 0 9px 22px rgba(75,155,207,.3); }
     .nav-item.home-tab.is-active .nav-icon { background: #4fa6da; transform: translateY(-1px); }
