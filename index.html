@@ -135,6 +135,7 @@
     .eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #8acaf0; }
     h1 { margin: 0; font-family: "Jua", sans-serif; font-size: clamp(34px, 10vw, 44px); font-weight: 400; line-height: 1.17; letter-spacing: -.8px; }
     h1 em { color: var(--teal); font-style: normal; }
+    .home-user-greeting { display: block; margin-bottom: 4px; color: #397fae; font-size: .58em; }
     .intro p { margin: 12px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
 
     .section-label { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; }
@@ -620,7 +621,7 @@
 
     <section class="intro" aria-labelledby="main-title">
       <div class="eyebrow">BUSAN BEACH NOW</div>
-      <h1 id="main-title">오늘,<br>어느 <em>바다</em>로 갈까요?</h1>
+      <h1 id="main-title"><span class="home-user-greeting" id="homeUserGreeting"></span>오늘,<br>어느 <em>바다</em>로 갈까요?</h1>
       <p>부산의 일곱 바다를 고르고<br>현재 시각 기반 AI 혼잡도를 확인하세요.</p>
     </section>
 
@@ -1394,6 +1395,7 @@
     const profileName = document.querySelector('#profileName');
     const profileError = document.querySelector('#profileError');
     const drawerUserName = document.querySelector('#drawerUserName');
+    const homeUserGreeting = document.querySelector('#homeUserGreeting');
     const drawerProfileIcon = document.querySelector('#drawerProfileIcon');
     const avatarScreen = document.querySelector('#avatarScreen');
     const avatarOptions = document.querySelector('#avatarOptions');
@@ -1416,6 +1418,7 @@
     };
     const updateProfileLabel = () => {
       drawerUserName.textContent = currentProfileName ? `${currentProfileName}님` : '방문자님';
+      homeUserGreeting.textContent = currentProfileName ? `${currentProfileName}님.` : '';
       drawerProfileIcon.innerHTML = currentAvatar.startsWith('data:image/')
         ? `<img src="${currentAvatar}" alt="">`
         : currentAvatar;
