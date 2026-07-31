@@ -144,7 +144,7 @@
 
     .beach-list {
       display: flex; gap: 8px;
-      margin: 0 -20px; padding: 0 20px 8px;
+      margin: -5px -20px 0; padding: 5px 20px 8px;
       overflow-x: auto; scrollbar-width: none;
       scroll-snap-type: x proximity;
     }
@@ -323,7 +323,7 @@
     .save-place.is-saved { color: #fff; background: #68b8e8; }
     .local-icon { display: grid; place-items: center; flex: 0 0 auto; width: 37px; height: 37px; border-radius: 12px; background: #dff1fc; font-size: 17px; }
     .local-copy { min-width: 0; flex: 1; }
-    .local-copy strong { display: block; color: #426a84; font-size: 16px; font-weight: 400; }
+    .local-copy strong { display: block; overflow: hidden; color: #426a84; font-size: 13px; font-weight: 400; white-space: nowrap; text-overflow: ellipsis; }
     .local-copy small { display: block; margin-top: 3px; overflow: hidden; color: #8aa1b2; font-size: 9px; white-space: nowrap; text-overflow: ellipsis; }
     .local-arrow { color: #8ab7d3; font-size: 18px; }
 
