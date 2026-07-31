@@ -124,7 +124,7 @@
     .mission-complete { color: #fff; background: #68b8e8; }
     .mission-retry { color: #397fae; background: #e2f3fc; }
     .mission-result { margin-top: 15px; padding: 22px; border-radius: 20px; background: linear-gradient(145deg,#e1f5ff,#f7fcff); text-align: center; }
-    .mission-result[hidden], .mission-retry[hidden], .mission-complete[hidden] { display: none; }
+    [hidden] { display: none !important; }
     .mission-celebration { display: block; margin-bottom: 8px; font-size: 34px; }
     .mission-final-score { display: block; color: #397fae; font-size: 34px; }
     .mission-final-copy { margin: 8px 0 0; color: #6f899c; font-size: 14px; line-height: 1.55; }
@@ -363,6 +363,10 @@
     .hour-track { position: relative; align-self: stretch; border-radius: 9px; background: #edf5fa; overflow: hidden; }
     .hour-bar { position: absolute; inset: auto 0 0; min-height: 9px; border-radius: 9px; background: linear-gradient(180deg, #9ed7f5, #6ab5e1); }
     .hour-time { color: #7892a9; font-size: 9px; font-weight: 700; }
+    .hour.is-current { margin: -7px -3px -5px; padding: 6px 3px 5px; border: 2px solid #338fca; border-radius: 13px; background: #dff3ff; box-shadow: 0 7px 18px rgba(51,143,202,.2); }
+    .hour.is-current .hour-value, .hour.is-current .hour-time { color: #176c9e; font-weight: 900; }
+    .hour.is-current .hour-bar { background: linear-gradient(180deg, #38a8df, #147ab7); }
+    .hour.is-current .hour-time::after { content: "현재"; display: block; margin-top: 2px; color: #0d6f9f; font-size: 7px; }
     .now-ai { margin-top: 18px; padding: 17px; border-radius: 17px; background: linear-gradient(135deg, #e3f4fe, #f2f9fd); }
     .now-ai-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
     .now-ai-label { display: inline-flex; align-items: center; gap: 6px; color: #397fae; font-size: 14px; }
@@ -691,7 +695,7 @@
       <div class="beach-list" id="beachList" role="group" aria-label="해수욕장 선택"></div>
     </section>
 
-    <section class="status-card" id="statusCard" aria-live="polite">
+    <section class="status-card" id="statusCard" aria-live="polite" hidden>
       <div class="card-top">
         <div><span class="place-meta" id="district"></span><h2 class="place-name" id="placeName"></h2></div>
         <span class="weather" id="weather" aria-label="날씨"></span>
@@ -713,7 +717,7 @@
       <div class="live-source"><span><i class="live-dot"></i><b id="liveState">실시간 정보 불러오는 중</b></span><span>Open-Meteo</span></div>
     </section>
 
-    <section class="daily-conclusion" aria-live="polite" aria-labelledby="conclusionTitle">
+    <section class="daily-conclusion" id="dailyConclusion" aria-live="polite" aria-labelledby="conclusionTitle" hidden>
       <div class="conclusion-top"><span class="conclusion-badge">✦ 바다모아 AI 종합</span><strong class="conclusion-score" id="conclusionScore"></strong></div>
       <h2 id="conclusionTitle">오늘의 바다 결론</h2>
       <p id="conclusionText"></p>
@@ -721,7 +725,7 @@
       <button class="conclusion-more" id="conclusionMore" type="button">해양 안전 자세히 보기 →</button>
     </section>
 
-    <section class="ai-panel" id="aiPanel" aria-live="polite" aria-labelledby="aiTitle">
+    <section class="ai-panel" id="aiPanel" aria-live="polite" aria-labelledby="aiTitle" hidden>
       <span class="ai-badge">✦ AI 한적한 바다 추천</span>
       <div class="ai-head">
         <div><p class="ai-kicker">지금 더 여유로운 선택</p><h2 class="ai-title" id="aiTitle"></h2></div>
@@ -736,7 +740,7 @@
       </div>
     </section>
 
-    <div class="legend" aria-label="혼잡도 색상 안내">
+    <div class="legend" id="statusLegend" aria-label="혼잡도 색상 안내" hidden>
       <span><i style="background:var(--low)"></i>여유</span>
       <span><i style="background:var(--medium)"></i>보통</span>
       <span><i style="background:var(--high)"></i>혼잡</span>
@@ -1021,6 +1025,7 @@
     const aiPanel = document.querySelector('#aiPanel');
     let recommendedIndex = -1;
     let selectedIndex = 0;
+    let hasBeachSelection = false;
     const liveCache = new Map();
     let beachMap = null;
     let jellyMap = null;
@@ -1038,21 +1043,25 @@
       button.type = 'button';
       button.className = 'beach-btn';
       button.textContent = beach.name;
-      button.setAttribute('aria-pressed', String(index === 0));
+      button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', () => selectBeach(index));
       list.appendChild(button);
     });
 
     document.querySelectorAll('[data-beach-select]').forEach(select => {
-      select.innerHTML = beaches.map((beach, index) => `<option value="${index}">${beach.name}해수욕장</option>`).join('');
+      select.innerHTML = `<option value="" selected disabled>해수욕장 선택</option>${beaches.map((beach, index) => `<option value="${index}">${beach.name}해수욕장</option>`).join('')}`;
       select.addEventListener('change', event => selectBeach(Number(event.target.value)));
     });
 
     function selectBeach(index) {
       selectedIndex = index;
+      hasBeachSelection = true;
       const beach = beaches[index];
       const estimate = getCurrentEstimate(beach);
       const status = levels[estimate.level];
+      card.hidden = false;
+      document.querySelector('#dailyConclusion').hidden = false;
+      document.querySelector('#statusLegend').hidden = false;
       document.querySelectorAll('.beach-btn').forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
       document.querySelectorAll('[data-beach-select]').forEach(select => { select.value = String(index); });
       document.querySelector('#district').textContent = `부산광역시 · ${beach.district}`;
@@ -1109,13 +1118,17 @@
     function renderHourly(beach) {
       const forecast = getHourlyForecast(beach);
       const chart = document.querySelector('#hourlyChart');
+      const currentHour = new Date().getHours();
       chart.innerHTML = forecast.map(({ hour, value }) => `
-        <div class="hour" aria-label="${hour}시 예상 혼잡도 ${value}%">
+        <div class="hour${hour === currentHour ? ' is-current' : ''}" ${hour === currentHour ? 'aria-current="time"' : ''} aria-label="${hour}시 예상 혼잡도 ${value}%${hour === currentHour ? ', 현재 시간' : ''}">
           <span class="hour-value">${value}%</span>
           <span class="hour-track"><i class="hour-bar" style="height:${value}%"></i></span>
           <span class="hour-time">${String(hour).padStart(2, '0')}시</span>
         </div>`).join('');
-      chart.scrollLeft = Math.max(0, new Date().getHours() * 55 - chart.clientWidth / 2);
+      requestAnimationFrame(() => {
+        const current = chart.querySelector('.is-current');
+        if (current && chart.clientWidth) chart.scrollLeft = Math.max(0, current.offsetLeft - (chart.clientWidth - current.offsetWidth) / 2);
+      });
     }
 
     function updateCurrentAi() {
@@ -1599,6 +1612,7 @@
       document.querySelectorAll('.nav-item').forEach(nav => nav.classList.toggle('is-active', nav.dataset.page === pageId));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (pageId === 'mapPage') setTimeout(initBeachMap, 80);
+      if (pageId === 'hourlyPage' && hasBeachSelection) setTimeout(() => renderHourly(beaches[selectedIndex]), 80);
       if (pageId === 'tripPage') setTimeout(() => {
         renderSavedPlaces();
         if (!document.querySelector('#tripPlanList').children.length) restoreStoredTripPlan();
@@ -1641,6 +1655,7 @@
     function renderAiRecommendation(selected) {
       const selectedEstimate = getCurrentEstimate(selected);
       if (selectedEstimate.level !== 3) {
+        aiPanel.hidden = true;
         aiPanel.classList.remove('is-visible');
         return;
       }
@@ -1662,6 +1677,7 @@
           <span class="commerce-copy"><strong>${place.name} · ${place.category}</strong><small>${place.detail}</small></span>
           <span class="commerce-arrow" aria-hidden="true">›</span>
         </a>`).join('');
+      aiPanel.hidden = false;
       aiPanel.classList.add('is-visible');
     }
 
@@ -1923,7 +1939,6 @@
       closeLaunch();
     });
 
-    selectBeach(0);
   </script>
 </body>
 </html>
