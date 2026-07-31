@@ -81,7 +81,8 @@
     .drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
     .drawer-head strong { font-size: 22px; color: #315f7e; }
     .drawer-profile { display: flex; align-items: center; gap: 11px; margin: -8px 0 17px; padding: 13px; border-radius: 17px; background: linear-gradient(135deg,#e4f5ff,#f5fbff); }
-    .drawer-profile-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; color: #fff; background: #68b8e8; font-size: 20px; }
+    .drawer-profile-icon { display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 0; border-radius: 14px; color: #fff; background: #68b8e8; font-size: 20px; cursor: pointer; overflow: hidden; }
+    .drawer-profile-icon img { width: 100%; height: 100%; object-fit: cover; }
     .drawer-profile-copy { min-width: 0; flex: 1; }
     .drawer-profile-copy strong { display: block; color: #315f7e; font-size: 17px; }
     .drawer-profile-copy small { color: #7892a9; font-size: 10px; }
@@ -550,6 +551,13 @@
     .profile-input:focus { border-color: #68b8e8; box-shadow: 0 0 0 4px rgba(104,184,232,.15); }
     .profile-error { min-height: 20px; margin: 7px 2px 3px !important; color: #d86670 !important; font-size: 11px !important; }
     .profile-save { width: 100%; min-height: 50px; border: 0; border-radius: 14px; color: #fff; background: #68b8e8; font: inherit; font-size: 16px; cursor: pointer; }
+    .avatar-dialog { position: relative; }
+    .avatar-close { position: absolute; top: 17px; right: 17px; width: 38px; height: 38px; border: 0; border-radius: 12px; color: #527992; background: #edf7fc; font-size: 20px; cursor: pointer; }
+    .avatar-options { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin: 16px 0; }
+    .avatar-option { aspect-ratio: 1; border: 2px solid transparent; border-radius: 14px; background: #eef8fd; font-size: 25px; cursor: pointer; }
+    .avatar-option[aria-pressed="true"] { border-color: #68b8e8; background: #dff3ff; }
+    .avatar-upload { display: flex; align-items: center; justify-content: center; min-height: 49px; border: 2px dashed #b9def0; border-radius: 14px; color: #397fae; background: #f7fcff; cursor: pointer; }
+    .avatar-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
   </style>
@@ -579,6 +587,17 @@
       <p class="profile-error" id="profileError" role="alert"></p>
       <button class="profile-save" type="submit">이 이름으로 시작하기</button>
     </form>
+  </div>
+  <div class="profile-screen" id="avatarScreen" role="dialog" aria-modal="true" aria-labelledby="avatarTitle" aria-hidden="true">
+    <div class="profile-dialog avatar-dialog">
+      <button class="avatar-close" id="avatarClose" type="button" aria-label="프로필 이미지 선택 닫기">×</button>
+      <span aria-hidden="true">🎨</span>
+      <h2 id="avatarTitle">프로필을 골라주세요</h2>
+      <p>이모티콘을 선택하거나 휴대폰의 사진을 사용할 수 있어요.</p>
+      <div class="avatar-options" id="avatarOptions" role="group" aria-label="기본 프로필 이모티콘"></div>
+      <label class="avatar-upload">📷 내 사진 선택하기<input id="avatarFile" type="file" accept="image/*"></label>
+      <p class="profile-error" id="avatarError" role="alert"></p>
+    </div>
   </div>
   <main class="app" id="appTop">
     <header>
@@ -722,7 +741,7 @@
   <button class="drawer-backdrop" id="drawerBackdrop" type="button" aria-label="메뉴 닫기"></button>
   <aside class="app-drawer" id="appDrawer" aria-label="해양 생태·관광 메뉴" aria-hidden="true">
     <div class="drawer-head"><strong>바다모아 더보기</strong><button class="drawer-close" id="drawerClose" type="button" aria-label="메뉴 닫기">✕</button></div>
-    <div class="drawer-profile"><span class="drawer-profile-icon" aria-hidden="true">☺</span><span class="drawer-profile-copy"><strong id="drawerUserName">방문자님</strong><small>이 기기에 저장된 이름</small></span><button class="profile-change" id="profileChange" type="button">이름 변경</button></div>
+    <div class="drawer-profile"><button class="drawer-profile-icon" id="drawerProfileIcon" type="button" aria-label="프로필 이미지 변경">☺</button><span class="drawer-profile-copy"><strong id="drawerUserName">방문자님</strong><small>아이콘을 눌러 프로필 변경</small></span><button class="profile-change" id="profileChange" type="button">이름 변경</button></div>
     <p class="drawer-intro">안전한 바다 관광과 생태 보호를 위한 AI 도구를 만나보세요.</p>
     <div class="drawer-menu">
       <button class="drawer-item" data-drawer-page="jellyfishPage"><span class="drawer-icon">🪼</span><span class="drawer-copy"><strong>해파리 위험 예상</strong><small>계절·수온 기반 주의 단계</small></span><span class="drawer-arrow">›</span></button>
@@ -1284,13 +1303,22 @@
     const profileName = document.querySelector('#profileName');
     const profileError = document.querySelector('#profileError');
     const drawerUserName = document.querySelector('#drawerUserName');
+    const drawerProfileIcon = document.querySelector('#drawerProfileIcon');
+    const avatarScreen = document.querySelector('#avatarScreen');
+    const avatarOptions = document.querySelector('#avatarOptions');
+    const avatarError = document.querySelector('#avatarError');
+    const avatarChoices = ['☺','🏖️','🌊','🐬','🐳','🐚','🪼','🐢','⭐','😎'];
     let currentProfileName = localStorage.getItem('badamoa-profile-name') || '';
+    let currentAvatar = localStorage.getItem('badamoa-profile-avatar') || '☺';
     const getUsedNames = () => {
       try { return JSON.parse(localStorage.getItem('badamoa-used-names') || '[]'); }
       catch (error) { return []; }
     };
     const updateProfileLabel = () => {
       drawerUserName.textContent = currentProfileName ? `${currentProfileName}님` : '방문자님';
+      drawerProfileIcon.innerHTML = currentAvatar.startsWith('data:image/')
+        ? `<img src="${currentAvatar}" alt="">`
+        : currentAvatar;
     };
     const openProfile = () => {
       profileName.value = currentProfileName;
@@ -1328,6 +1356,49 @@
     document.querySelector('#profileChange').addEventListener('click', () => {
       toggleMenu(false);
       openProfile();
+    });
+    const closeAvatar = () => {
+      avatarScreen.classList.remove('is-visible');
+      avatarScreen.setAttribute('aria-hidden', 'true');
+    };
+    const selectAvatar = avatar => {
+      try {
+        localStorage.setItem('badamoa-profile-avatar', avatar);
+      } catch (error) {
+        avatarError.textContent = '사진 저장 공간이 부족해요. 더 작은 사진을 선택해 주세요.';
+        return;
+      }
+      currentAvatar = avatar;
+      avatarOptions.querySelectorAll('.avatar-option').forEach((button, index) => button.setAttribute('aria-pressed', String(avatarChoices[index] === avatar)));
+      updateProfileLabel();
+      closeAvatar();
+    };
+    avatarOptions.innerHTML = avatarChoices.map(avatar => `<button class="avatar-option" type="button" aria-label="${avatar} 프로필 선택" aria-pressed="${avatar === currentAvatar}">${avatar}</button>`).join('');
+    avatarOptions.querySelectorAll('.avatar-option').forEach((button, index) => {
+      button.addEventListener('click', () => selectAvatar(avatarChoices[index]));
+    });
+    drawerProfileIcon.addEventListener('click', () => {
+      toggleMenu(false);
+      avatarError.textContent = '';
+      avatarScreen.classList.add('is-visible');
+      avatarScreen.setAttribute('aria-hidden', 'false');
+    });
+    document.querySelector('#avatarClose').addEventListener('click', closeAvatar);
+    document.querySelector('#avatarFile').addEventListener('change', event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        avatarError.textContent = '이미지 파일만 선택해 주세요.';
+        return;
+      }
+      if (file.size > 1024 * 1024) {
+        avatarError.textContent = '사진은 1MB 이하로 선택해 주세요.';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => selectAvatar(reader.result);
+      reader.onerror = () => { avatarError.textContent = '사진을 읽지 못했어요. 다시 선택해 주세요.'; };
+      reader.readAsDataURL(file);
     });
     const forceNotice = new URLSearchParams(location.search).get('notice') === 'show';
     if (forceNotice) localStorage.removeItem('badamoa-notice-hide-until');
